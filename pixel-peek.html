@@ -10,8 +10,11 @@
             --bg-color: #1e1e24;
             --wall-color: #0f0f12;
             --accent-color: #4cc9f0;
-            --enemy-head: #e74c3c;
-            --enemy-body: #c0392b;
+            
+            /* UPDATED: "Realistic" Camo Colors */
+            /* No more bright red. Now it's SWAT Grey/Tan */
+            --enemy-head: #8a8d91; /* Dull Helmet Grey */
+            --enemy-body: #2d3035; /* Dark Tactical Uniform */
         }
 
         body {
@@ -33,7 +36,8 @@
             position: relative;
             width: 800px;
             height: 500px;
-            background: radial-gradient(circle at center, #2b2b36 0%, #000 100%);
+            /* Darker background to simulate a dimly lit map */
+            background: radial-gradient(circle at center, #23232a 0%, #050505 100%);
             border: 2px solid #333;
             border-radius: 8px;
             overflow: hidden;
@@ -41,67 +45,83 @@
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
 
-        /* The Cover (Right Side - 50% Width) */
+        /* The Cover (Right Side) */
         .wall {
             position: absolute;
             right: 0;
             top: 0;
-            width: 400px; /* Explicit width */
+            width: 400px; 
             height: 100%;
-            background: #111; /* Solid background to ensure hiding */
+            background: #111;
             border-left: 4px solid #000;
-            z-index: 20; /* High Z-Index to cover enemy */
+            z-index: 20; 
         }
 
         /* The Enemy Character */
         #enemy {
             position: absolute;
-            right: 50px; /* Starts DEEP behind the wall (Wall is 400px wide) */
+            right: 10px; 
             bottom: 140px;
             width: 60px;
             height: 140px;
-            z-index: 10; /* Lower Z-Index than wall */
-            
-            /* Animation Setup */
-            transition: transform 0.15s cubic-bezier(0.1, 0.7, 1.0, 0.1); 
-            will-change: transform; /* optimizing performance */
+            z-index: 10;
+            will-change: transform;
         }
 
-        /* Enemy Body Parts */
+        /* Enemy Visuals - UPDATED FOR REALISM */
         .head {
-            width: 40px; height: 40px;
+            width: 30px; height: 30px; 
             background-color: var(--enemy-head);
             border-radius: 50%;
-            margin: 0 auto;
-            border: 2px solid #5a0b0b;
+            margin: 0 auto; 
+            /* Subtle rim light so you can BARELY see him against the black wall */
+            border: 1px solid #555; 
+            position: relative;
+            top: 5px;
+            z-index: 12;
         }
         .body {
             width: 60px; height: 100px;
             background-color: var(--enemy-body);
             border-radius: 8px;
-            margin-top: -5px;
+            margin-top: 5px;
+            /* Very subtle shadow to separate from background */
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
         }
         .gun {
             width: 50px; height: 10px; background: #000;
             position: absolute; top: 50px; left: -10px;
         }
 
-        /* --- ACTIVE CLASSES --- */
+        /* --- ANIMATION CLASSES --- */
         
-        /* The Swing: Moves -400px Left */
-        /* Start (50px) + Move (400px) = Ends at 450px from right (Visible) */
-        .swinging {
-            transform: translateX(-400px) !important; 
+        /* 1. WIDE SWING (Easy) */
+        .swing-wide {
+            transition: transform 0.3s cubic-bezier(0.1, 0.7, 1.0, 0.1); 
+            transform: translateX(-450px) !important; 
         }
 
-        /* Dead Animation */
+        /* 2. STANDARD PEEK (Medium) */
+        .swing-normal {
+            transition: transform 0.2s cubic-bezier(0.1, 0.7, 1.0, 0.1); 
+            transform: translateX(-410px) !important; 
+        }
+
+        /* 3. HEAD GLITCH (Hard) */
+        .swing-tight {
+            transition: transform 0.15s cubic-bezier(0.0, 1.2, 0.8, 1.0); 
+            transform: translateX(-395px) !important; 
+        }
+
+        /* Death Animation */
         .enemy-dead {
             transform: translateX(-400px) rotate(-90deg) translateY(100px) !important;
             transition: transform 0.3s ease-in !important;
             filter: grayscale(100%);
+            opacity: 0.5;
         }
 
-        /* Overlays */
+        /* UI Elements */
         .overlay-msg {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; align-items: center; justify-content: center;
@@ -110,11 +130,18 @@
             text-shadow: 0 0 20px #000;
             opacity: 0; transition: opacity 0.1s;
         }
+        #death-screen { background: rgba(100, 0, 0, 0.3); color: #fff; }
         
-        #death-screen { background: rgba(255, 0, 0, 0.3); color: #fff; }
-        
-        #ui-layer { position: absolute; top: 20px; left: 20px; font-size: 1.2rem; z-index: 50; }
-        
+        #ui-layer { 
+            position: absolute; top: 20px; left: 20px; 
+            font-size: 1rem; z-index: 50; display: flex; gap: 20px; align-items: center;
+        }
+
+        select {
+            background: #000; color: var(--accent-color); border: 1px solid var(--accent-color);
+            padding: 5px 10px; font-weight: bold; border-radius: 4px; cursor: pointer;
+        }
+
         #start-msg {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
@@ -129,8 +156,16 @@
 
     <div id="game-container">
         <div id="ui-layer">
-            <div>Reaction: <span id="time-disp" style="color:var(--accent-color)">0 ms</span></div>
-            <div>Status: <span id="status-disp">IDLE</span></div>
+            <div>
+                DIFFICULTY: 
+                <select id="diff-select" onchange="resetGame()">
+                    <option value="easy">COPPER (Wide)</option>
+                    <option value="medium" selected>PLATINUM (Standard)</option>
+                    <option value="hard">CHAMPION (Tight/Fast)</option>
+                </select>
+            </div>
+            <div>STATUS: <span id="status-disp">IDLE</span></div>
+            <div>LAST: <span id="time-disp" style="color:var(--accent-color)">0 ms</span></div>
         </div>
 
         <div id="start-msg">CLICK ANYWHERE TO START</div>
@@ -145,72 +180,67 @@
     </div>
 
     <div style="margin-top: 20px; text-align: center; color: #888;">
-        <p><strong>Instructions:</strong> 1. Click to Start. 2. Wait (don't predict!). 3. Click when he swings.</p>
+        <p><strong>Instructions:</strong> Select difficulty. Click screen to start. Click FAST when he peeks.</p>
         <a href="index.html" style="color: var(--accent-color); text-decoration: none;">← Back to Dashboard</a>
     </div>
 
     <script>
-        // --- ELEMENTS ---
         const enemyEl = document.getElementById('enemy');
         const deathScreen = document.getElementById('death-screen');
         const startMsg = document.getElementById('start-msg');
         const timeDisp = document.getElementById('time-disp');
         const statusDisp = document.getElementById('status-disp');
+        const diffSelect = document.getElementById('diff-select');
 
-        // --- STATE ---
-        let gameState = "IDLE"; // IDLE, HOLDING, SWINGING, ENDED
+        let gameState = "IDLE"; 
         let swingStartTime = 0;
         let killTimer = null;
         let swingTimeout = null;
-        
-        // --- SETTINGS ---
-        const ENEMY_KILL_TIME = 300; // ms to kill you
 
         function handleUserClick() {
+            if (event.target.tagName === 'SELECT') return;
+
             if (gameState === "IDLE" || gameState === "ENDED") {
                 startRound();
                 return;
             }
 
             if (gameState === "HOLDING") {
-                // User clicked while waiting -> FAIL
                 failRound("PREFIRE");
                 return;
             }
 
             if (gameState === "SWINGING") {
-                // User clicked while enemy is out -> SUCCESS
                 const reaction = Date.now() - swingStartTime;
                 winRound(reaction);
             }
         }
 
+        function resetGame() {
+            gameState = "IDLE";
+            startMsg.style.display = "block";
+            startMsg.innerText = "CLICK TO START";
+        }
+
         function startRound() {
-            // 1. Reset Internal State
             gameState = "HOLDING";
             clearTimeout(killTimer);
             clearTimeout(swingTimeout);
 
-            // 2. Reset UI
+            // UI Reset
             deathScreen.style.opacity = "0";
             startMsg.style.display = "none";
-            statusDisp.innerText = "HOLDING ANGLE...";
+            statusDisp.innerText = "HOLDING...";
             statusDisp.style.color = "#fff";
             timeDisp.innerText = "0 ms";
 
-            // 3. Reset Enemy Position (The Trick)
-            enemyEl.classList.remove("swinging", "enemy-dead");
-            
-            // SUPER IMPORTANT: Force a browser reflow. 
-            // This makes sure the browser 'sees' the enemy back at the start position 
-            // before we try to move him again.
+            // Reset Enemy
+            enemyEl.className = "";
             void enemyEl.offsetWidth; 
 
-            // 4. Set Random Timer (2 to 5 seconds)
-            const randomTime = Math.random() * 3000 + 2000;
+            const randomTime = Math.random() * 3000 + 1500;
             
             swingTimeout = setTimeout(() => {
-                // Check if we are still holding (user didn't click/quit)
                 if(gameState === "HOLDING") {
                     triggerSwing();
                 }
@@ -220,31 +250,38 @@
         function triggerSwing() {
             gameState = "SWINGING";
             swingStartTime = Date.now();
+            
+            const diff = diffSelect.value;
+            let killTime = 300;
+            let animClass = "swing-normal";
 
-            // 1. Apply class to move enemy
-            enemyEl.classList.add("swinging");
+            if (diff === 'easy') {
+                killTime = 450;
+                animClass = "swing-wide";
+            } else if (diff === 'medium') {
+                killTime = 280;
+                animClass = "swing-normal";
+            } else if (diff === 'hard') {
+                killTime = 190;
+                animClass = "swing-tight";
+            }
 
-            // 2. Start the timer that kills the player
+            enemyEl.classList.add(animClass);
+
             killTimer = setTimeout(() => {
                 if(gameState === "SWINGING") {
                     failRound("TOO_SLOW");
                 }
-            }, ENEMY_KILL_TIME);
+            }, killTime);
         }
 
         function winRound(ms) {
             gameState = "ENDED";
-            clearTimeout(killTimer); // You survived!
-
-            // Update UI
+            clearTimeout(killTimer);
             statusDisp.innerText = "HEADSHOT!";
-            statusDisp.style.color = "#2ecc71"; // Green
+            statusDisp.style.color = "#2ecc71";
             timeDisp.innerText = ms + " ms";
-            
-            // Animation: Enemy Dies
             enemyEl.classList.add("enemy-dead");
-
-            // Show Restart Msg
             setTimeout(() => {
                 startMsg.innerText = "CLICK TO GO AGAIN";
                 startMsg.style.display = "block";
@@ -254,16 +291,15 @@
         function failRound(reason) {
             gameState = "ENDED";
             clearTimeout(killTimer);
-
+            
             if (reason === "TOO_SLOW") {
                 statusDisp.innerText = "YOU DIED";
                 statusDisp.style.color = "#e74c3c";
                 deathScreen.style.opacity = "1";
             } else if (reason === "PREFIRE") {
-                statusDisp.innerText = "PRE-FIRE (TOO EARLY)";
+                statusDisp.innerText = "PRE-FIRE!";
                 statusDisp.style.color = "orange";
-                // Show him so you know you failed
-                enemyEl.classList.add("swinging");
+                enemyEl.classList.add("swing-wide");
             }
 
             setTimeout(() => {
