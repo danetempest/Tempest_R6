@@ -41,29 +41,30 @@
             box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
 
-        /* The Cover (Right Side) */
+        /* The Cover (Right Side - 50% Width) */
         .wall {
             position: absolute;
             right: 0;
             top: 0;
-            width: 50%; /* Covers pixels 400px to 800px */
+            width: 400px; /* Explicit width */
             height: 100%;
-            background: linear-gradient(90deg, #111 0%, var(--wall-color) 20%);
+            background: #111; /* Solid background to ensure hiding */
             border-left: 4px solid #000;
-            z-index: 10; /* Important: Wall is ON TOP of enemy */
+            z-index: 20; /* High Z-Index to cover enemy */
         }
 
         /* The Enemy Character */
         #enemy {
             position: absolute;
-            /* FIXED: Put him DEEP inside the wall initially so he is hidden */
-            right: 200px; 
+            right: 50px; /* Starts DEEP behind the wall (Wall is 400px wide) */
             bottom: 140px;
             width: 60px;
             height: 140px;
-            z-index: 5; /* Behind the wall */
-            transition: transform 0.1s cubic-bezier(0.1, 0.7, 1.0, 0.1); /* Fast swing */
-            display: none; 
+            z-index: 10; /* Lower Z-Index than wall */
+            
+            /* Animation Setup */
+            transition: transform 0.15s cubic-bezier(0.1, 0.7, 1.0, 0.1); 
+            will-change: transform; /* optimizing performance */
         }
 
         /* Enemy Body Parts */
@@ -85,50 +86,55 @@
             position: absolute; top: 50px; left: -10px;
         }
 
-        /* --- ANIMATIONS --- */
+        /* --- ACTIVE CLASSES --- */
         
-        /* FIXED: Swing distance increased to clear the wall */
+        /* The Swing: Moves -400px Left */
+        /* Start (50px) + Move (400px) = Ends at 450px from right (Visible) */
         .swinging {
-            transform: translateX(-350px); 
+            transform: translateX(-400px) !important; 
         }
 
         /* Dead Animation */
         .enemy-dead {
-            transform: translateX(-350px) rotate(-90deg) translateY(100px) !important;
+            transform: translateX(-400px) rotate(-90deg) translateY(100px) !important;
             transition: transform 0.3s ease-in !important;
             filter: grayscale(100%);
         }
 
         /* Overlays */
-        .you-died-overlay {
+        .overlay-msg {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 0, 0, 0.4);
             display: flex; align-items: center; justify-content: center;
-            font-size: 5rem; font-weight: 900; color: #fff;
+            font-size: 3rem; font-weight: 900; 
+            z-index: 100; pointer-events: none;
             text-shadow: 0 0 20px #000;
-            opacity: 0; pointer-events: none; z-index: 100;
-            transition: opacity 0.1s;
+            opacity: 0; transition: opacity 0.1s;
         }
-
-        #ui-layer { position: absolute; top: 20px; left: 20px; font-size: 1.2rem; z-index: 20; }
+        
+        #death-screen { background: rgba(255, 0, 0, 0.3); color: #fff; }
+        
+        #ui-layer { position: absolute; top: 20px; left: 20px; font-size: 1.2rem; z-index: 50; }
+        
         #start-msg {
             position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             font-size: 2rem; font-weight: bold; color: var(--accent-color);
-            z-index: 20; pointer-events: none;
+            z-index: 50; pointer-events: none;
+            background: rgba(0,0,0,0.8);
+            padding: 20px; border-radius: 10px;
         }
     </style>
 </head>
-<body onmousedown="fireShot()">
+<body onmousedown="handleUserClick()">
 
     <div id="game-container">
         <div id="ui-layer">
             <div>Reaction: <span id="time-disp" style="color:var(--accent-color)">0 ms</span></div>
-            <div>Status: <span id="status-disp">Waiting...</span></div>
+            <div>Status: <span id="status-disp">IDLE</span></div>
         </div>
 
-        <div id="start-msg">CLICK SCREEN TO START</div>
-        <div id="death-screen" class="you-died-overlay">YOU DIED</div>
+        <div id="start-msg">CLICK ANYWHERE TO START</div>
+        <div id="death-screen" class="overlay-msg">YOU DIED</div>
 
         <div id="enemy">
             <div class="head"></div>
@@ -139,115 +145,131 @@
     </div>
 
     <div style="margin-top: 20px; text-align: center; color: #888;">
-        <p>Instructions: Click to start. Wait for the swing. <strong>Click immediately when he appears.</strong></p>
+        <p><strong>Instructions:</strong> 1. Click to Start. 2. Wait (don't predict!). 3. Click when he swings.</p>
         <a href="index.html" style="color: var(--accent-color); text-decoration: none;">← Back to Dashboard</a>
     </div>
 
     <script>
+        // --- ELEMENTS ---
         const enemyEl = document.getElementById('enemy');
         const deathScreen = document.getElementById('death-screen');
         const startMsg = document.getElementById('start-msg');
         const timeDisp = document.getElementById('time-disp');
         const statusDisp = document.getElementById('status-disp');
 
-        let gameState = "IDLE"; 
-        let swingTime = 0;
+        // --- STATE ---
+        let gameState = "IDLE"; // IDLE, HOLDING, SWINGING, ENDED
+        let swingStartTime = 0;
         let killTimer = null;
+        let swingTimeout = null;
         
-        // Settings
-        const ENEMY_KILL_SPEED = 300; // Time (ms) before you die.
+        // --- SETTINGS ---
+        const ENEMY_KILL_TIME = 300; // ms to kill you
 
-        function fireShot() {
+        function handleUserClick() {
             if (gameState === "IDLE" || gameState === "ENDED") {
-                resetGame();
+                startRound();
                 return;
             }
 
             if (gameState === "HOLDING") {
-                endGame("PREFIRE"); // Clicked too early
+                // User clicked while waiting -> FAIL
+                failRound("PREFIRE");
                 return;
             }
 
             if (gameState === "SWINGING") {
-                // Success
-                const reactionTime = Date.now() - swingTime;
-                killEnemy(reactionTime);
+                // User clicked while enemy is out -> SUCCESS
+                const reaction = Date.now() - swingStartTime;
+                winRound(reaction);
             }
         }
 
-        function resetGame() {
+        function startRound() {
+            // 1. Reset Internal State
             gameState = "HOLDING";
             clearTimeout(killTimer);
-            
-            // Reset Visuals
-            enemyEl.style.display = "block"; // Render him (hidden behind wall)
-            enemyEl.classList.remove("swinging", "enemy-dead"); 
-            enemyEl.style.transform = ""; // Reset position to behind wall
-            
+            clearTimeout(swingTimeout);
+
+            // 2. Reset UI
             deathScreen.style.opacity = "0";
             startMsg.style.display = "none";
             statusDisp.innerText = "HOLDING ANGLE...";
             statusDisp.style.color = "#fff";
             timeDisp.innerText = "0 ms";
 
-            // Random Delay 2-5s
-            const randomDelay = Math.random() * 3000 + 2000;
+            // 3. Reset Enemy Position (The Trick)
+            enemyEl.classList.remove("swinging", "enemy-dead");
+            
+            // SUPER IMPORTANT: Force a browser reflow. 
+            // This makes sure the browser 'sees' the enemy back at the start position 
+            // before we try to move him again.
+            void enemyEl.offsetWidth; 
 
-            setTimeout(() => {
-                // Only swing if we are still waiting (user hasn't clicked/reset)
+            // 4. Set Random Timer (2 to 5 seconds)
+            const randomTime = Math.random() * 3000 + 2000;
+            
+            swingTimeout = setTimeout(() => {
+                // Check if we are still holding (user didn't click/quit)
                 if(gameState === "HOLDING") {
-                    enemySwing();
+                    triggerSwing();
                 }
-            }, randomDelay);
+            }, randomTime);
         }
 
-        function enemySwing() {
+        function triggerSwing() {
             gameState = "SWINGING";
-            swingTime = Date.now();
+            swingStartTime = Date.now();
 
-            // 1. Move him out!
+            // 1. Apply class to move enemy
             enemyEl.classList.add("swinging");
 
-            // 2. Start Death Timer
+            // 2. Start the timer that kills the player
             killTimer = setTimeout(() => {
                 if(gameState === "SWINGING") {
-                    playerDies();
+                    failRound("TOO_SLOW");
                 }
-            }, ENEMY_KILL_SPEED);
+            }, ENEMY_KILL_TIME);
         }
 
-        function killEnemy(ms) {
-            clearTimeout(killTimer);
+        function winRound(ms) {
             gameState = "ENDED";
-            enemyEl.classList.add("enemy-dead");
-            statusDisp.innerText = "NICE SHOT!";
-            statusDisp.style.color = "#2ecc71";
+            clearTimeout(killTimer); // You survived!
+
+            // Update UI
+            statusDisp.innerText = "HEADSHOT!";
+            statusDisp.style.color = "#2ecc71"; // Green
             timeDisp.innerText = ms + " ms";
-            startMsg.innerText = "CLICK TO GO AGAIN";
-            startMsg.style.display = "block";
-        }
+            
+            // Animation: Enemy Dies
+            enemyEl.classList.add("enemy-dead");
 
-        function playerDies() {
-            gameState = "ENDED";
-            deathScreen.style.opacity = "1";
-            statusDisp.innerText = "YOU DIED";
-            statusDisp.style.color = "#e74c3c";
-            startMsg.innerText = "CLICK TO RETRY";
-            startMsg.style.display = "block";
-        }
-
-        function endGame(reason) {
-            if(reason === "PREFIRE") {
-                gameState = "ENDED";
-                clearTimeout(killTimer);
-                statusDisp.innerText = "PRE-FIRE! (Don't guess)";
-                statusDisp.style.color = "orange";
-                startMsg.innerText = "CLICK TO RETRY";
+            // Show Restart Msg
+            setTimeout(() => {
+                startMsg.innerText = "CLICK TO GO AGAIN";
                 startMsg.style.display = "block";
-                
-                // Show him so user knows he was there
+            }, 500);
+        }
+
+        function failRound(reason) {
+            gameState = "ENDED";
+            clearTimeout(killTimer);
+
+            if (reason === "TOO_SLOW") {
+                statusDisp.innerText = "YOU DIED";
+                statusDisp.style.color = "#e74c3c";
+                deathScreen.style.opacity = "1";
+            } else if (reason === "PREFIRE") {
+                statusDisp.innerText = "PRE-FIRE (TOO EARLY)";
+                statusDisp.style.color = "orange";
+                // Show him so you know you failed
                 enemyEl.classList.add("swinging");
             }
+
+            setTimeout(() => {
+                startMsg.innerText = "CLICK TO RETRY";
+                startMsg.style.display = "block";
+            }, 500);
         }
     </script>
 </body>
