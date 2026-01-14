@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>R6 Recoil Lab</title>
+    <style>
+        :root {
+            --bg: #09090b;
+            --accent: #ef4444; /* Aggressive Red for Recoil */
+            --text: #f4f4f5;
+        }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            user-select: none;
+        }
+
+        /* NAVIGATION BUTTON */
+        .home-btn {
+            position: absolute; top: 20px; left: 20px;
+            background: #27272a; color: #a1a1aa; text-decoration: none;
+            padding: 10px 20px; border-radius: 6px; border: 1px solid #3f3f46;
+            font-weight: 700; font-size: 0.8rem; transition: 0.2s;
+        }
+        .home-btn:hover { border-color: #fff; color: #fff; }
+
+        /* CANVAS CONTAINER */
+        #game-area {
+            position: relative;
+            box-shadow: 0 0 50px rgba(239, 68, 68, 0.2);
+            border: 2px solid #333;
+            border-radius: 12px;
+            cursor: none; /* Hide cursor during gameplay */
+        }
+
+        /* HUD OVERLAY */
+        #hud {
+            position: absolute;
+            top: 20px; width: 100%;
+            text-align: center;
+            pointer-events: none;
+        }
+        .stat-box {
+            display: inline-block;
+            background: rgba(0,0,0,0.8);
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            margin: 0 10px;
+        }
+        .label { font-size: 0.8rem; color: #a1a1aa; text-transform: uppercase; }
+        .value { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+
+        /* START SCREEN */
+        #start-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(9, 9, 11, 0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        h1 { font-size: 3rem; margin: 0; text-transform: uppercase; letter-spacing: 2px; }
+        p { color: #a1a1aa; max-width: 400px; text-align: center; line-height: 1.6; }
+        .btn {
+            background: var(--accent); color: #fff; border: none;
+            padding: 15px 40px; font-size: 1.2rem; font-weight: 800;
+            cursor: pointer; border-radius: 6px; margin-top: 20px;
+            transition: 0.2s;
+        }
+        .btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent); }
+
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="home-btn">← DASHBOARD</a>
+
+    <div id="game-area">
+        <canvas id="recoilCanvas" width="800" height="600"></canvas>
+        
+        <div id="hud">
+            <div class="stat-box">
+                <div class="label">Control Time</div>
+                <div class="value" id="score-disp">0.0s</div>
+            </div>
+            <div class="stat-box">
+                <div class="label">Recoil Strength</div>
+                <div class="value" id="strength-disp">100%</div>
+            </div>
+        </div>
+
+        <div id="start-screen">
+            <h1>Recoil Lab</h1>
+            <p>The target will pull UP. Pull your mouse DOWN to keep it centered. It gets harder the longer you hold.</p>
+            <button class="btn" onclick="startGame()">START SPRAY</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('recoilCanvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('start-screen');
+        const scoreDisp = document.getElementById('score-disp');
+        const strengthDisp = document.getElementById('strength-disp');
+
+        // Game State
+        let isRunning = false;
+        let score = 0;
+        let startTime = 0;
+        let animationFrame;
+        
+        // Physics
+        let ballX = 400; // Center Width
+        let ballY = 300; // Center Height
+        let recoilForce = 0.5; // Upward force
+        let jitter = 0; // Horizontal shake
+
+        // Config
+        const ZONE_RADIUS = 60; // The safe circle size
+        const BALL_RADIUS = 8; 
+
+        // Mouse Tracker
+        canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            canvas.requestPointerLock();
+            
+            // Reset Values
+            ballX = 400;
+            ballY = 300;
+            recoilForce = 1.5; // Starting recoil (SMG-11 style)
+            score = 0;
+            startTime = Date.now();
+            isRunning = true;
+
+            // Start Loops
+            document.addEventListener("mousemove", handleMouse, false);
+            gameLoop();
+        }
+
+        function handleMouse(e) {
+            if (!isRunning) return;
+            // Counter-act the recoil with mouse movement
+            // e.movementY is positive when moving down
+            ballY += e.movementY; 
+            ballX += e.movementX;
+        }
+
+        function gameLoop() {
+            if (!isRunning) return;
+
+            // 1. UPDATE PHYSICS
+            // Increase recoil force slightly over time (Fatigue)
+            recoilForce += 0.005; 
+            
+            // Add horizontal jitter (Random shake like aiming)
+            let shake = (Math.random() - 0.5) * (recoilForce * 2);
+            
+            // Apply Forces (Ball moves UP naturally)
+            ballY -= recoilForce; 
+            ballX += shake;
+
+            // 2. CHECK BOUNDARIES (Did you lose control?)
+            // Distance from center (400, 300)
+            let dist = Math.hypot(ballX - 400, ballY - 300);
+
+            if (dist > ZONE_RADIUS) {
+                gameOver();
+                return;
+            }
+
+            // 3. UPDATE UI
+            let timeAlive = ((Date.now() - startTime) / 1000).toFixed(2);
+            scoreDisp.innerText = timeAlive + "s";
+            strengthDisp.innerText = Math.round(recoilForce * 100) + "%";
+
+            // 4. DRAW
+            draw();
+
+            animationFrame = requestAnimationFrame(gameLoop);
+        }
+
+        function draw() {
+            // Clear Screen
+            ctx.fillStyle = "#18181b"; // Dark Grey
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Safe Zone (Center)
+            ctx.beginPath();
+            ctx.arc(400, 300, ZONE_RADIUS, 0, Math.PI * 2);
+            ctx.strokeStyle = "#333";
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            
+            // Draw Crosshair Lines
+            ctx.strokeStyle = "rgba(255,255,255,0.1)";
+            ctx.beginPath();
+            ctx.moveTo(0, 300); ctx.lineTo(800, 300);
+            ctx.moveTo(400, 0); ctx.lineTo(400, 600);
+            ctx.stroke();
+
+            // Draw Player Ball (The Aim Point)
+            ctx.beginPath();
+            ctx.arc(ballX, ballY, BALL_RADIUS, 0, Math.PI * 2);
+            ctx.fillStyle = "#ef4444"; // Red Dot
+            ctx.fill();
+            
+            // Draw "Tension" Line (Visualizes force)
+            ctx.beginPath();
+            ctx.moveTo(400, 300);
+            ctx.lineTo(ballX, ballY);
+            ctx.strokeStyle = "rgba(239, 68, 68, 0.3)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        function gameOver() {
+            isRunning = false;
+            document.exitPointerLock();
+            document.removeEventListener("mousemove", handleMouse, false);
+            cancelAnimationFrame(animationFrame);
+
+            startScreen.style.display = 'flex';
+            startScreen.innerHTML = `
+                <h1 style="color:#ef4444">CONTROL LOST</h1>
+                <p>You held the spray for <strong>${scoreDisp.innerText}</strong>.</p>
+                <p>Recoil reached <strong>${strengthDisp.innerText}</strong> strength.</p>
+                <button class="btn" onclick="startGame()">RETRY</button>
+            `;
+        }
+    </script>
+</body>
+</html>
