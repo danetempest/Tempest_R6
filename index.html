@@ -6,21 +6,20 @@
     <title>R6 COACH PRO: COMMAND CENTER</title>
     <style>
         :root { 
-            /* THEME: Space Gray, Light Blue, Black */
-            --bg: #050505;              /* Pure Black Background */
-            --panel: #111111;           /* Darker Panel */
-            --card: #1c1c1e;            /* Space Gray Card */
-            --accent: #38bdf8;          /* Electric Light Blue */
+            /* THEME: Matte Black, Space Gray, Electric Blue */
+            --bg: #050505;
+            --card: #141416;
+            --panel: #1c1c1e;
+            --accent: #38bdf8;          /* Electric Blue */
+            --accent-dim: rgba(56, 189, 248, 0.1);
             --accent-glow: rgba(56, 189, 248, 0.4);
-            --text-main: #e2e8f0;
+            --text-main: #f8fafc;
             --text-dim: #94a3b8;
+            --border: 1px solid rgba(255, 255, 255, 0.08);
             
             --p-gold: #fbbf24;
             --p-red: #ef4444;
-            --p-green: #22c55e;
-            
-            --glass: rgba(28, 28, 30, 0.7);
-            --border: 1px solid rgba(255, 255, 255, 0.1);
+            --p-green: #10b981;
         }
         
         * { box-sizing: border-box; user-select: none; }
@@ -34,176 +33,101 @@
             overflow-x: hidden;
         }
 
-        /* --- DASHBOARD VIEW --- */
-        #dashboard-view {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            width: 100%;
-            gap: 40px;
-            animation: fadeIn 0.5s ease;
-        }
+        /* --- ICONS (SVG) --- */
+        .icon { width: 24px; height: 24px; fill: currentColor; }
+        .icon-lg { width: 64px; height: 64px; fill: var(--accent); margin-bottom: 20px; }
 
+        /* --- VIEW MANAGEMENT --- */
+        .view-section {
+            display: none; width: 100vw; min-height: 100vh;
+            flex-direction: column; align-items: center; padding: 40px 20px;
+            animation: fadeIn 0.4s ease-out;
+        }
+        .view-section.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- DASHBOARD --- */
+        #dashboard-view { justify-content: center; gap: 50px; }
+        
         .dash-title {
-            font-size: 3rem;
-            font-weight: 900;
-            letter-spacing: -1px;
+            font-size: 3.5rem; font-weight: 900; letter-spacing: -2px;
             background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px var(--accent-glow);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 40px var(--accent-glow); text-align: center;
         }
 
-        .module-grid {
-            display: flex;
-            gap: 30px;
-        }
+        .module-grid { display: flex; gap: 30px; }
 
         .module-card {
-            width: 300px;
-            height: 350px;
-            background: var(--card);
-            border: var(--border);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: space-between;
-            transition: 0.3s;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
+            width: 320px; height: 380px;
+            background: var(--card); border: var(--border); border-radius: 20px;
+            padding: 40px 30px;
+            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            transition: 0.3s; cursor: pointer;
+        }
+        .module-card:hover { transform: translateY(-10px); border-color: var(--accent); box-shadow: 0 20px 50px rgba(56, 189, 248, 0.15); }
+        .module-card h2 { margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
+        .module-card p { font-size: 0.9rem; color: var(--text-dim); text-align: center; line-height: 1.6; }
+        .module-btn { 
+            background: var(--accent); color: #000; font-weight: 800; padding: 14px; 
+            border-radius: 8px; width: 100%; text-align: center; letter-spacing: 1px; font-size: 0.8rem;
         }
 
-        .module-card:hover {
-            transform: translateY(-10px);
-            border-color: var(--accent);
-            box-shadow: 0 10px 40px var(--accent-glow);
-        }
+        /* --- TRAINER UI --- */
+        .lab-container { width: 1000px; max-width: 95vw; display: flex; flex-direction: column; gap: 20px; }
 
-        .card-icon { font-size: 4rem; margin-top: 40px; }
-        .card-name { font-size: 1.5rem; font-weight: 800; color: #fff; }
-        .card-desc { font-size: 0.8rem; color: var(--text-dim); text-align: center; }
-        .card-btn {
-            background: var(--accent);
-            color: #000;
-            font-weight: 800;
-            padding: 10px 20px;
-            border-radius: 8px;
-            width: 100%;
-            text-align: center;
-            text-transform: uppercase;
-        }
-
-        /* --- TRAINER VIEW (HIDDEN BY DEFAULT) --- */
-        #trainer-view {
-            display: none; /* Hidden initially */
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            width: 100%;
-            min-height: 100vh;
-        }
-
-        /* NAVBAR */
-        .nav-bar {
-            width: 100%;
-            max-width: 1000px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 0;
-            margin-bottom: 20px;
-        }
-
+        /* Nav & Daily Bar */
+        .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
         .back-btn {
-            background: transparent;
-            border: 1px solid var(--accent);
-            color: var(--accent);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 700;
-            transition: 0.2s;
+            background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim);
+            padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.75rem;
+            transition: 0.2s; display: flex; align-items: center; gap: 8px;
         }
-        .back-btn:hover { background: var(--accent); color: #000; }
+        .back-btn:hover { border-color: var(--accent); color: var(--accent); }
 
-        /* --- TRAINER LAYOUT --- */
-        .main-container { width: 1000px; max-width: 95vw; display: flex; flex-direction: column; gap: 20px; }
+        .daily-tracker { flex: 1; max-width: 400px; margin-left: 30px; }
+        .daily-label { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-dim); font-weight: 700; margin-bottom: 6px; }
+        .progress-track { width: 100%; height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px var(--accent-glow); }
 
-        .lab-card { 
-            background: var(--card); 
-            padding: 24px; 
-            border-radius: 12px; 
-            border: var(--border); 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.6); 
-        }
-
-        /* BENTO GRID */
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
-        
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 10px; }
         .bento-card { 
-            background: #252529; /* Slightly lighter Space Gray */
-            border: var(--border); 
-            border-radius: 12px; 
-            padding: 15px; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            position: relative;
+            background: var(--panel); border: var(--border); border-radius: 12px; padding: 15px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative;
         }
-        
-        .card-hero { grid-column: span 2; grid-row: span 2; background: rgba(0,0,0,0.3); border: 1px solid var(--accent-glow); }
-        .card-settings { grid-column: span 2; display: flex; flex-direction: row; gap: 10px; }
-
         .stat-label { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; font-weight: 700; }
-        .hero-val { font-size: 3.5rem; font-weight: 900; color: #fff; text-shadow: 0 0 30px var(--accent-glow); line-height: 1; }
-        .stat-val { font-size: 1.2rem; font-weight: bold; color: #fff; }
+        .hero-val { font-size: 3rem; font-weight: 900; color: #fff; line-height: 1; }
+        .stat-val { font-size: 1.2rem; font-weight: 800; color: #fff; }
 
-        /* VIEWPORT */
+        /* Viewport */
         .viewport { 
-            height: 400px; 
-            background: linear-gradient(180deg, #0a0a0a 0%, #111 100%); /* Matte Black Gradient */
-            border-radius: 8px; margin-bottom: 20px; position: relative; overflow: hidden; 
-            border: 2px solid #333; 
-            perspective: 1000px; /* Reduced perspective for snappier feel */
+            height: 450px; 
+            background: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
+            border-radius: 12px; position: relative; overflow: hidden; 
+            border: 2px solid #333; perspective: 1000px;
         }
 
-        /* THEATER MODE */
-        body.theater-mode #trainer-view { padding: 0; }
-        body.theater-mode .main-container { width: 100vw; max-width: none; }
-        body.theater-mode .lab-card, body.theater-mode .nav-bar { display: none; }
-        body.theater-mode .viewport { 
-            width: 100vw; height: 100vh; margin: 0; border: none; border-radius: 0; 
-            position: fixed; top: 0; left: 0; z-index: 999;
-        }
-
-        /* WORLD */
+        /* 3D World */
         .world-container { position: absolute; width: 300%; height: 100%; left: -100%; top: 0; transform-style: preserve-3d; }
         .hallway { position: absolute; width: 33.33%; height: 100%; left: 33.33%; transform-style: preserve-3d; }
-        
         .floor { 
             position: absolute; width: 2000px; height: 2000px; left: 50%; bottom: -600px; margin-left: -1000px; 
-            /* Space Gray Floor Pattern */
             background: repeating-linear-gradient(90deg, #1c1c1e 0px, #1c1c1e 48px, #333 48px, #333 50px), 
                         repeating-linear-gradient(0deg, #1c1c1e 0px, #1c1c1e 48px, #333 48px, #333 50px); 
             transform: rotateX(85deg); 
         }
-        
         .wall { position: absolute; width: 800px; height: 100%; top: -200px; background: linear-gradient(90deg, #000, #111); }
         .wall-left { left: -300px; transform: rotateY(80deg); }
         .wall-right { right: -300px; transform: rotateY(-80deg); background: linear-gradient(-90deg, #000, #111); }
         
-        /* DOORFRAME */
-        .doorframe { position: absolute; width: 140px; height: 100%; left: 50%; top: 0; margin-left: -70px; z-index: 10; pointer-events: none; }
+        .doorframe { position: absolute; width: 140px; height: 100%; left: 50%; top: 0; margin-left: -70px; z-index: 10; pointer-events: none; transition: width 0.3s, margin-left 0.3s; }
         .door-col { position: absolute; width: 40px; height: 100%; background: #222; border: 1px solid #444; }
-        
-        /* ENEMY */
+
         .enemy-target { 
             position: absolute; top: 50%; left: 50%; margin-top: -30px; 
-            width: 40px; height: 80px; z-index: 5; 
-            transition: transform 0.05s, opacity 0.1s; /* SUPER FAST TRANSITION */
+            width: 40px; height: 80px; z-index: 5; transition: transform 0.05s, opacity 0.1s; 
         }
         .enemy-target.dead { opacity: 0; transform: scale(0.9); }
         .enemy-head { 
@@ -213,13 +137,11 @@
         }
         .enemy-body { position: absolute; top: 32px; left: 0; width: 40px; height: 50px; background: #ef4444; border-radius: 4px; opacity: 0.6; }
 
-        /* WEAPON */
         .weapon-container { position: absolute; bottom: 0; left: 50%; width: 200px; height: 160px; margin-left: -100px; z-index: 50; pointer-events: none; }
-        .weapon-model { position: absolute; bottom: -20px; left: 50%; margin-left: -40px; transition: transform 0.03s linear; /* ULTRA SNAP TRANSITION */ }
+        .weapon-model { position: absolute; bottom: -20px; left: 50%; margin-left: -40px; transition: transform 0.03s linear; }
         .gun-body { width: 80px; height: 45px; background: #111; border-radius: 4px; border: 1px solid #333; position: relative; }
         .gun-optic { position: absolute; top: -15px; left: 20px; width: 40px; height: 15px; background: #000; border: 1px solid var(--accent); box-shadow: 0 0 5px var(--accent); }
-        
-        /* HUD ELEMENTS */
+
         .crosshair { 
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
             width: 20px; height: 20px; z-index: 100; pointer-events: none;
@@ -229,19 +151,23 @@
         .ch-h { width: 100%; height: 2px; } .ch-v { width: 2px; height: 100%; }
         .ch-dot { width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }
 
+        /* HUD Keys */
         .combo-track { 
             position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); 
-            z-index: 80; display: flex; gap: 10px; 
+            z-index: 80; display: flex; gap: 12px; 
         }
         .key-node { 
-            width: 45px; height: 45px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 8px; display: flex; align-items: center; justify-content: center; 
-            font-size: 1.2rem; font-weight: 800; color: #555; transition: 0.05s;
+            width: 50px; height: 50px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 10px; display: flex; align-items: center; justify-content: center; 
+            font-size: 1.2rem; font-weight: 800; color: #555; transition: 0.1s;
         }
         .key-node.active { opacity: 1; border-color: var(--accent); color: #fff; box-shadow: 0 0 15px var(--accent-glow); transform: scale(1.1); }
         .key-node.hit { background: var(--accent); border-color: var(--accent); color: #000; }
 
-        /* STREAK POPUP */
+        /* Streak & Feedback */
+        .feedback-text { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); font-size: 2rem; font-weight: 900; opacity: 0; transition: 0.2s; z-index: 100; text-shadow: 0 4px 10px rgba(0,0,0,0.8); }
+        .feedback-text.show { opacity: 1; }
+        
         .streak-popup {
             position: absolute; top: 40%; left: 60%; 
             font-size: 4rem; font-weight: 900; color: var(--accent);
@@ -251,92 +177,89 @@
         }
         .streak-popup.pop { animation: popText 0.3s ease-out; }
         @keyframes popText { 0% { opacity: 1; transform: scale(0.5); } 50% { transform: scale(1.2); } 100% { opacity: 0; transform: scale(1.5); } }
+        .confetti { position: absolute; width: 8px; height: 8px; background: var(--accent); animation: fall 1s linear forwards; z-index: 999; }
+        @keyframes fall { to { transform: translateY(300px) rotate(360deg); opacity: 0; } }
 
-        /* CONTROLS */
+        /* Controls */
         .controls-wrapper { display: flex; flex-direction: column; gap: 10px; }
         .control-row { display: flex; gap: 10px; width: 100%; }
-        .glass-panel { background: #252529; border: 1px solid #333; border-radius: 8px; padding: 12px; flex: 1; }
+        .glass-panel { background: var(--panel); border: 1px solid #333; border-radius: 8px; padding: 15px; flex: 1; }
         
-        .mode-select { background: #111; color: #fff; border: 1px solid #333; padding: 10px; border-radius: 6px; width: 100%; }
-        .styled-slider { width: 100%; height: 4px; background: #333; border-radius: 2px; -webkit-appearance: none; margin-top: 10px; }
-        .styled-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; cursor: pointer; }
+        .input-label { font-size: 0.65rem; color: var(--text-dim); font-weight: 700; display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        .select-box { 
+            background: #000; color: #fff; border: 1px solid #333; padding: 10px; 
+            border-radius: 6px; width: 100%; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.85rem;
+        }
+        .select-box:focus { border-color: var(--accent); outline: none; }
 
-        .btn { background: #111; border: 1px solid #333; color: #aaa; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 700; transition: 0.2s; }
+        .styled-slider { width: 100%; height: 4px; background: #333; border-radius: 2px; -webkit-appearance: none; display: block; margin-top: 10px; }
+        .styled-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; cursor: pointer; }
+        
+        .btn { 
+            background: #111; border: 1px solid #333; color: var(--text-dim); padding: 12px; 
+            border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.8rem; transition: 0.2s; letter-spacing: 0.5px;
+        }
         .btn:hover { border-color: var(--accent); color: #fff; }
         .btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
-        /* MAP SECTION */
-        .map-section { background: var(--card); border: 1px solid #333; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .map-frame-container { width: 100%; height: 600px; background: #000; border-radius: 8px; border: 2px solid #333; overflow: hidden; }
+        /* --- STRAT BOARD --- */
+        #strat-view { padding: 0; background: #0b0b0d; }
+        .strat-header { width: 100%; padding: 20px 40px; background: #111; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .map-frame-container { width: 100%; height: calc(100vh - 80px); background: #000; overflow: hidden; }
         iframe { width: 100%; height: 100%; border: none; }
-
-        /* CONFETTI */
-        .confetti { position: absolute; width: 8px; height: 8px; background: var(--accent); animation: fall 1s linear forwards; z-index: 999; }
-        @keyframes fall { to { transform: translateY(200px) rotate(360deg); opacity: 0; } }
-        
-        /* ANIMATIONS */
-        .shake { animation: shake 0.1s cubic-bezier(.36,.07,.19,.97) both; }
-        @keyframes shake { 0% { transform: translate(0, 0); } 25% { transform: translate(5px, 5px); } 75% { transform: translate(-5px, -5px); } 100% { transform: translate(0, 0); } }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
     </style>
 </head>
 <body>
 
-    <div id="dashboard-view">
+    <div id="dashboard-view" class="view-section active">
         <div class="dash-title">R6 COACH PRO</div>
         <div class="module-grid">
-            <div class="module-card" onclick="enterTrainer()">
-                <div class="card-icon">🎯</div>
-                <div class="card-name">PEEK TRAINER</div>
-                <div class="card-desc">Master the Shaiiko mechanical rhythm. Intel gathering, pre-fire timing, and counter-strafing.</div>
-                <div class="card-btn">ENTER SIMULATION</div>
+            <div class="module-card" onclick="goToView('trainer-view')">
+                <svg class="icon-lg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-4-8c0-2.21 1.79-4 4-4s4 1.79 4 4-1.79 4-4 4-4-1.79-4-4zm4 2c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
+                <h2>PEEK TRAINER</h2>
+                <p>Mechanics, rhythm, and pre-fire timing. Master the A-D-E-Q sequence.</p>
+                <div class="module-btn">ENTER SIMULATION</div>
             </div>
-            <div class="module-card" onclick="enterTrainer(true)">
-                <div class="card-icon">🗺️</div>
-                <div class="card-name">STRAT BOARD</div>
-                <div class="card-desc">Interactive strategy board linked to R6Calls. Study callouts and setups.</div>
-                <div class="card-btn">OPEN MAPS</div>
+            <div class="module-card" onclick="goToView('strat-view')">
+                <svg class="icon-lg" viewBox="0 0 24 24"><path d="M20.5 3l-6 2-6-2-5.5 1.83v15.34l6 2 6-2 5.5 1.83v-15.34l-5.5-1.83zm-6 15.34l-6 2v-12.68l6-2v12.68zm6-2v-12.68l-6 2v12.68l6-2z"/></svg>
+                <h2>STRAT BOARD</h2>
+                <p>Interactive strategy command center. Study maps, angles, and callouts.</p>
+                <div class="module-btn">OPEN MAPS</div>
             </div>
         </div>
     </div>
 
-    <div id="trainer-view">
-        <div class="nav-bar">
-            <div style="font-weight:900; font-size:1.2rem; color:#fff;">FOCUS LAB <span style="color:var(--accent)">V3.0</span></div>
-            <button class="back-btn" onclick="exitTrainer()">← DASHBOARD</button>
-        </div>
-
-        <div class="main-container">
+    <div id="trainer-view" class="view-section">
+        <div class="lab-container">
+            
+            <div class="top-bar">
+                <button class="back-btn" onclick="goToView('dashboard-view')">
+                    <svg class="icon" style="width:16px;height:16px;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                    DASHBOARD
+                </button>
+                <div class="daily-tracker">
+                    <div class="daily-label"><span>DAILY GOAL: S-RANKS</span><span id="daily-text">0 / 50</span></div>
+                    <div class="progress-track"><div class="progress-fill" id="daily-fill"></div></div>
+                </div>
+            </div>
 
             <div class="stats-grid">
-                <div class="bento-card card-hero">
+                <div class="bento-card" style="grid-column: span 2;">
                     <span class="stat-label">LAST PEEK</span>
                     <span class="hero-val" id="time-display">0<span style="font-size:1.5rem; color:#666">ms</span></span>
-                    <div style="font-size:0.75rem; color:var(--accent); margin-top:5px; font-weight:700">AVG: <span id="avg-disp">0ms</span></div>
                 </div>
                 <div class="bento-card">
                     <span class="stat-label">STREAK</span>
-                    <span class="stat-val" id="streak-disp" style="color:var(--accent); font-size:2rem;">0</span>
+                    <span class="hero-val" id="streak-disp" style="color:var(--accent);">0</span>
                 </div>
                 <div class="bento-card">
                     <span class="stat-label">ACCURACY</span>
-                    <span class="stat-val" id="acc-disp">0%</span>
-                </div>
-                <div class="bento-card card-settings">
-                    <div style="flex:1">
-                         <span class="stat-label">CROSSHAIR</span>
-                         <div style="display:flex; gap:5px; margin-top:5px;">
-                             <div style="width:15px; height:15px; background:#38bdf8; border-radius:50%; cursor:pointer;" onclick="setCHColor('#38bdf8')"></div>
-                             <div style="width:15px; height:15px; background:#ef4444; border-radius:50%; cursor:pointer;" onclick="setCHColor('#ef4444')"></div>
-                             <div style="width:15px; height:15px; background:#22c55e; border-radius:50%; cursor:pointer;" onclick="setCHColor('#22c55e')"></div>
-                         </div>
-                    </div>
+                    <span class="hero-val" id="acc-disp" style="font-size:2rem;">0%</span>
                 </div>
             </div>
 
             <div class="viewport" id="viewport">
-                <button class="theater-btn" onclick="toggleFullscreen()">⛶ THEATER</button>
                 <div class="feedback-text" id="feedback-text">READY</div>
                 <div class="streak-popup" id="streak-pop">+1</div>
                 
@@ -374,60 +297,74 @@
 
             <div class="controls-wrapper">
                 <div class="control-row">
-                    <div class="glass-panel" style="flex:1">
-                        <span class="stat-label">MODE</span>
-                        <select class="mode-select" style="margin-top:5px;" onchange="setMode(this.value)">
+                    <div class="glass-panel">
+                        <span class="input-label">DRILL MODE</span>
+                        <select class="select-box" onchange="setMode(this.value)">
                             <option value="full">FULL DRILL</option>
                             <option value="intel">INTEL ONLY</option>
                             <option value="kill">KILL ONLY</option>
+                            <option value="freeplay">FREEPLAY</option>
                         </select>
                     </div>
+                    <div class="glass-panel">
+                        <span class="input-label">DIFFICULTY WINDOW</span>
+                        <select class="select-box" onchange="setDifficulty(this.value)">
+                            <option value="1.0">ROOKIE (Standard)</option>
+                            <option value="0.85">ADVANCED (Ranked)</option>
+                            <option value="0.7">PRO LEAGUE (Strict)</option>
+                        </select>
+                    </div>
+                    <div class="glass-panel">
+                        <span class="input-label">DOOR WIDTH</span>
+                        <input type="range" class="styled-slider" min="60" max="200" value="140" oninput="setDoorWidth(this.value)">
+                    </div>
+                </div>
+
+                <div class="control-row">
                     <div class="glass-panel" style="flex:2">
                         <div style="display:flex; justify-content:space-between;">
-                            <span class="stat-label">SPEED (BPM)</span>
-                            <span class="stat-label" style="color:var(--accent)" id="bpm-val">120</span>
+                            <span class="input-label">TARGET SPEED (BPM)</span>
+                            <span class="input-label" style="color:var(--accent)" id="bpm-val">120</span>
                         </div>
                         <input type="range" class="styled-slider" min="60" max="220" step="5" value="120" oninput="setBPM(this.value)">
                     </div>
-                </div>
-                <div class="control-row">
-                    <button class="btn" style="flex:1" onclick="swapSide()">🔁 SWAP PEEK (RIGHT)</button>
-                    <button class="btn" style="flex:1" onclick="toggleMusic()" id="music-btn">🎵 PHONK: OFF</button>
-                    <button class="btn" style="flex:1" onclick="resetStats()">🗑️ RESET</button>
-                </div>
-            </div>
-
-            <div class="map-section" id="map-section">
-                <div class="map-header" style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <span class="stat-label" style="font-size:1rem; color:#fff;">STRATEGY BOARD</span>
-                    <select class="mode-select" style="width:auto;" onchange="loadMap(this.value)">
-                        <option value="oregon">OREGON</option>
-                        <option value="clubhouse">CLUBHOUSE</option>
-                        <option value="coastline">COASTLINE</option>
-                    </select>
-                </div>
-                <div class="map-frame-container">
-                    <iframe id="r6-frame" src="" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+                    <div class="glass-panel" style="flex:2; display:flex; gap:10px; align-items:flex-end;">
+                        <button class="btn" style="flex:1" onclick="swapSide()">SWAP SIDE</button>
+                        <button class="btn" style="flex:1" onclick="toggleMusic()" id="music-btn">BEAT SYNC</button>
+                        <button class="btn" style="flex:1" onclick="resetStats()">RESET</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        // --- NAVIGATION ---
-        function enterTrainer(scrollToMaps = false) {
-            document.getElementById('dashboard-view').style.display = 'none';
-            document.getElementById('trainer-view').style.display = 'flex';
-            if(scrollToMaps) {
-                setTimeout(() => document.getElementById('map-section').scrollIntoView({behavior:'smooth'}), 100);
-            }
-        }
-        function exitTrainer() {
-            document.getElementById('dashboard-view').style.display = 'flex';
-            document.getElementById('trainer-view').style.display = 'none';
-        }
+    <div id="strat-view" class="view-section">
+        <div class="strat-header">
+            <button class="back-btn" onclick="goToView('dashboard-view')">
+                <svg class="icon" style="width:16px;height:16px;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
+                DASHBOARD
+            </button>
+            <div style="display:flex; gap:15px; align-items:center;">
+                <span class="input-label" style="font-size:0.9rem; color:#fff;">STRATEGY CENTER</span>
+                <select class="select-box" style="width:auto;" onchange="loadMap(this.value)">
+                    <option value="oregon">OREGON</option>
+                    <option value="clubhouse">CLUBHOUSE</option>
+                    <option value="coastline">COASTLINE</option>
+                    <option value="bank">BANK</option>
+                    <option value="chalet">CHALET</option>
+                    <option value="kafe">KAFE</option>
+                    <option value="consulate">CONSULATE</option>
+                    <option value="border">BORDER</option>
+                </select>
+            </div>
+        </div>
+        <div class="map-frame-container">
+            <iframe id="r6-frame" src="" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+        </div>
+    </div>
 
-        // --- CONFIG ---
+    <script>
+        // --- CORE VARIABLES ---
         const SEQS = { 'ADEQ': ['a','d','e','q'], 'DAQE': ['d','a','q','e'] };
         let currentSide = 'ADEQ';
         let idx = 0;
@@ -436,16 +373,16 @@
         let attempts = 0;
         let sRanks = 0;
         let bpm = 120;
+        let difficultyMult = 1.0; // 1.0 = Easy, 0.7 = Pro
+        let mode = 'full'; // full, intel, kill, freeplay
         
-        // --- ANIMATION ENGINE (UPDATED FOR SPEED) ---
+        // --- ANIMATION ENGINE ---
         let cx=0, tx=0, cLean=0, tLean=0;
-        // LERP FACTOR: Increased to 0.4 for SNAPPY, FAST animations
-        const LERP_SPEED = 0.4; 
+        const LERP_SPEED = 0.4;
 
         function loop() {
             cx += (tx - cx) * LERP_SPEED;
             cLean += (tLean - cLean) * LERP_SPEED;
-            
             document.getElementById('world').style.transform = `translateX(${cx}px)`;
             document.getElementById('weapon').style.transform = `translateX(${cLean * 20}px) rotateZ(${cLean * 15}deg)`;
             requestAnimationFrame(loop);
@@ -454,18 +391,17 @@
 
         // --- INPUT LOGIC ---
         window.addEventListener('keydown', e => {
-            if(document.getElementById('dashboard-view').style.display !== 'none') return; // Don't run on dashboard
+            if(!document.getElementById('trainer-view').classList.contains('active')) return;
             
             const k = e.key.toLowerCase();
-            const seq = SEQS[currentSide];
+            if(k === ' ') { e.preventDefault(); swapSide(); return; }
 
+            const seq = SEQS[currentSide];
             if(k === seq[idx]) {
                 if(idx===0) { startTime = performance.now(); document.getElementById('k0').classList.add('active'); }
-                
-                // Key Visuals
                 document.getElementById('k'+idx).classList.add('hit');
                 
-                // Fast Movement Logic
+                // Movement
                 if(currentSide === 'ADEQ') {
                     if(idx===0) tx = 80;
                     if(idx===1) tx = -60;
@@ -481,31 +417,34 @@
                 idx++;
                 if(idx===4) finish();
             } else if(['a','d','e','q'].includes(k)) {
-                fail();
+                if(mode !== 'freeplay') fail();
             }
         });
 
         function finish() {
             const total = performance.now() - startTime;
-            const target = (60000/bpm) * 3; // 3 beats for sequence
+            // TARGET CALCULATION: BPM Time * 3 Beats * Difficulty Multiplier
+            const target = (60000/bpm) * 3 * difficultyMult; 
             
-            // Recoil Kick
             document.getElementById('weapon').style.transform += ` translateY(20px)`; 
-            
-            // Visuals
             document.getElementById('enemy').classList.add('dead');
             
             let rank = 'D';
-            if(total < target * 0.85) rank = 'S';
-            else if(total < target) rank = 'A';
+            
+            if(mode === 'freeplay') {
+                rank = 'PRACTICE';
+            } else {
+                if(total < target * 0.85) rank = 'S';
+                else if(total < target) rank = 'A';
+            }
 
             updateStats(total, rank);
-            setTimeout(resetRound, 100); // Super fast reset (100ms)
+            setTimeout(resetRound, 100);
         }
 
         function fail() {
             streak = 0;
-            document.getElementById('streak-disp').innerText = 0;
+            updateStats(0, 'FAIL');
             document.getElementById('viewport').style.boxShadow = "inset 0 0 50px rgba(239, 68, 68, 0.5)";
             setTimeout(() => document.getElementById('viewport').style.boxShadow = "none", 200);
             resetRound();
@@ -513,10 +452,7 @@
 
         function resetRound() {
             idx = 0; tx = 0; tLean = 0;
-            document.querySelectorAll('.key-node').forEach(k => {
-                k.classList.remove('hit'); 
-                k.classList.remove('active');
-            });
+            document.querySelectorAll('.key-node').forEach(k => { k.classList.remove('hit'); k.classList.remove('active'); });
             document.getElementById('enemy').classList.remove('dead');
             randomizeTarget();
         }
@@ -529,73 +465,68 @@
             el.style.transform = `translateX(${offset}px)`;
         }
 
-        // --- DAQE FIX & SIDE SWAP ---
-        function swapSide() {
-            currentSide = currentSide === 'ADEQ' ? 'DAQE' : 'ADEQ';
-            const btn = document.querySelector('button[onclick="swapSide()"]');
-            
-            // FIX: Update inner text of keys immediately
-            const k0 = document.getElementById('k0');
-            const k1 = document.getElementById('k1');
-            const k2 = document.getElementById('k2'); // E or Q
-            const k3 = document.getElementById('k3'); // Q or E
-
-            if(currentSide === 'ADEQ') {
-                k0.innerText = 'A'; k1.innerText = 'D'; k2.innerText = 'E'; k3.innerText = 'Q';
-                btn.innerText = "🔁 SWAP PEEK (RIGHT)";
-            } else {
-                k0.innerText = 'D'; k1.innerText = 'A'; k2.innerText = 'Q'; k3.innerText = 'E';
-                btn.innerText = "🔁 SWAP PEEK (LEFT)";
-            }
-            resetRound();
-        }
-
-        // --- STREAK & CONFETTI ---
+        // --- STATE MANAGEMENT ---
         function updateStats(ms, rank) {
-            attempts++;
+            if(rank !== 'FAIL' && rank !== 'PRACTICE') attempts++;
+            
             if(rank === 'S') {
                 streak++;
+                sRanks++;
                 triggerPopup("+" + streak);
-                if(streak === 10) fireConfetti();
                 if(streak > 0 && streak % 10 === 0) fireConfetti();
-            } else {
+            } else if (rank === 'FAIL') {
                 streak = 0;
             }
             
-            document.getElementById('time-display').innerHTML = Math.round(ms) + '<span style="font-size:1.5rem; color:#666">ms</span>';
+            // UI Updates
+            if(ms > 0) document.getElementById('time-display').innerHTML = Math.round(ms) + '<span style="font-size:1.5rem; color:#666">ms</span>';
             document.getElementById('streak-disp').innerText = streak;
-            document.getElementById('acc-disp').innerText = Math.round((sRanks/attempts)*100) + "%";
+            document.getElementById('acc-disp').innerText = attempts > 0 ? Math.round((sRanks/attempts)*100) + "%" : "0%";
+            
+            // Daily Progress
+            document.getElementById('daily-text').innerText = sRanks + " / 50";
+            document.getElementById('daily-fill').style.width = Math.min(100, (sRanks/50)*100) + "%";
         }
 
+        function swapSide() {
+            currentSide = currentSide === 'ADEQ' ? 'DAQE' : 'ADEQ';
+            const k = document.querySelectorAll('.key-node');
+            if(currentSide === 'ADEQ') { k[0].innerText='A'; k[1].innerText='D'; k[2].innerText='E'; k[3].innerText='Q'; }
+            else { k[0].innerText='D'; k[1].innerText='A'; k[2].innerText='Q'; k[3].innerText='E'; }
+            resetRound();
+        }
+
+        // --- SETTINGS ---
+        function setBPM(val) { bpm = val; document.getElementById('bpm-val').innerText = val; }
+        
+        function setDoorWidth(val) {
+            document.getElementById('doorframe').style.width = val + 'px';
+            document.getElementById('doorframe').style.marginLeft = -(val/2) + 'px';
+        }
+        
+        function setDifficulty(val) { difficultyMult = parseFloat(val); }
+        function setMode(val) { mode = val; resetRound(); }
+        
+        // --- VISUALS ---
         function triggerPopup(text) {
             const el = document.getElementById('streak-pop');
-            el.innerText = text;
-            el.classList.remove('pop');
-            void el.offsetWidth; // trigger reflow
-            el.classList.add('pop');
+            el.innerText = text; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
         }
-
         function fireConfetti() {
             triggerPopup("CONFIDENCE!");
             for(let i=0; i<20; i++) {
                 const c = document.createElement('div');
                 c.className = 'confetti';
                 c.style.left = Math.random() * 100 + "%";
-                c.style.backgroundColor = ['#38bdf8', '#fbbf24', '#fff'][Math.floor(Math.random()*3)];
                 document.getElementById('viewport').appendChild(c);
                 setTimeout(() => c.remove(), 1000);
             }
         }
 
-        // --- SETTINGS ---
-        function setBPM(val) { bpm = val; document.getElementById('bpm-val').innerText = val; }
-        function setCHColor(c) { 
-            document.querySelectorAll('.ch-line').forEach(l => l.style.background = c);
-            document.getElementById('ch-dot').style.background = c;
-        }
-        function toggleFullscreen() {
-            if(!document.fullscreenElement) { document.body.requestFullscreen(); document.body.classList.add('theater-mode'); }
-            else { document.exitFullscreen(); document.body.classList.remove('theater-mode'); }
+        // --- NAVIGATION ---
+        function goToView(id) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
         
         // --- MAPS ---
