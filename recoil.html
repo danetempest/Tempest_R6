@@ -2,16 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>R6 Recoil Lab</title>
+    <title>R6 Recoil Lab - Pro</title>
     <style>
         :root {
             --bg: #09090b;
             --accent: #ef4444; 
             --text: #f4f4f5;
-            --stage-1: #22c55e; /* Green */
-            --stage-2: #eab308; /* Yellow */
-            --stage-3: #ef4444; /* Red */
-            --stage-4: #a855f7; /* Purple (Insane) */
+            --target-active: #22c55e; /* Green */
+            --target-dead: #52525b;   /* Grey */
         }
         body {
             margin: 0;
@@ -27,7 +25,6 @@
             user-select: none;
         }
 
-        /* NAVIGATION BUTTON */
         .home-btn {
             position: absolute; top: 20px; left: 20px;
             background: #27272a; color: #a1a1aa; text-decoration: none;
@@ -37,56 +34,60 @@
         }
         .home-btn:hover { border-color: #fff; color: #fff; }
 
-        /* CANVAS CONTAINER */
         #game-area {
             position: relative;
-            box-shadow: 0 0 50px rgba(239, 68, 68, 0.2);
+            box-shadow: 0 0 60px rgba(0,0,0,0.5);
             border: 2px solid #333;
             border-radius: 12px;
             cursor: none; 
             background: radial-gradient(circle at center, #18181b 0%, #000 100%);
         }
 
-        /* HUD OVERLAY */
+        /* HUD */
         #hud {
-            position: absolute;
-            top: 20px; width: 100%;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            pointer-events: none;
+            position: absolute; top: 20px; width: 100%;
+            display: flex; justify-content: center; gap: 20px; pointer-events: none;
         }
         .stat-box {
-            background: rgba(0,0,0,0.8);
-            padding: 10px 20px;
-            border-radius: 8px;
-            border: 1px solid #333;
-            min-width: 140px;
-            text-align: center;
+            background: rgba(0,0,0,0.8); padding: 10px 20px;
+            border-radius: 8px; border: 1px solid #333;
+            min-width: 120px; text-align: center;
         }
-        .label { font-size: 0.7rem; color: #a1a1aa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-        .value { font-size: 1.8rem; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
-        
+        .label { font-size: 0.7rem; color: #a1a1aa; text-transform: uppercase; margin-bottom: 5px; }
+        .value { font-size: 1.5rem; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
         #score-disp { color: var(--accent); }
 
-        /* START / COUNTDOWN SCREEN */
+        /* RECOIL BAR */
+        #recoil-bar-container {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 300px; height: 8px; background: #333; border-radius: 4px; overflow: hidden;
+        }
+        #recoil-fill {
+            height: 100%; width: 0%; background: var(--accent);
+            transition: width 0.1s linear;
+        }
+
+        /* START SCREEN */
         #overlay-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(9, 9, 11, 0.95);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            border-radius: 12px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            z-index: 10; border-radius: 12px;
         }
         
-        /* Typography */
         h1 { font-size: 3rem; margin: 0; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); }
         .big-count { font-size: 8rem; font-weight: 900; color: #fff; animation: popIn 0.5s ease-out; }
-        p { color: #a1a1aa; max-width: 400px; text-align: center; line-height: 1.6; margin-bottom: 30px; }
         
+        /* MODE SELECTOR */
+        .mode-select {
+            margin: 20px 0;
+            background: #000; color: #fff;
+            border: 1px solid #444; padding: 10px 20px;
+            font-size: 1.2rem; border-radius: 6px; cursor: pointer;
+            font-family: 'Segoe UI', sans-serif; font-weight: 700;
+        }
+
         .btn {
             background: var(--accent); color: #fff; border: none;
             padding: 15px 40px; font-size: 1.2rem; font-weight: 800;
@@ -94,17 +95,6 @@
             transition: 0.2s; border: 1px solid #b91c1c;
         }
         .btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent); }
-
-        /* RECOIL BAR */
-        #recoil-bar-container {
-            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            width: 300px; height: 8px; background: #333; border-radius: 4px;
-            overflow: hidden;
-        }
-        #recoil-fill {
-            height: 100%; width: 0%; background: var(--stage-1);
-            transition: width 0.1s linear, background 0.3s;
-        }
 
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
@@ -119,12 +109,12 @@
         
         <div id="hud">
             <div class="stat-box">
-                <div class="label">Time Alive</div>
-                <div class="value" id="score-disp">0.00s</div>
+                <div class="label">Time / Score</div>
+                <div class="value" id="score-disp">0.00</div>
             </div>
             <div class="stat-box">
-                <div class="label">Current Stage</div>
-                <div class="value" id="stage-disp" style="color:var(--stage-1)">STAGE 1</div>
+                <div class="label">Status</div>
+                <div class="value" id="status-disp">HOLD</div>
             </div>
         </div>
 
@@ -134,8 +124,18 @@
 
         <div id="overlay-screen">
             <h1>Recoil Lab</h1>
-            <p><strong>INSTRUCTIONS:</strong><br>The red dot pulls UP.<br>Pull mouse DOWN to keep it in the circle.<br><strong>Difficulty jumps every 5 seconds.</strong></p>
-            <button class="btn" onclick="triggerCountdown()">START SEQUENCE</button>
+            
+            <div style="margin-top:20px; text-align:center;">
+                <label style="color:#aaa; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Select Drill Mode</label><br>
+                <select id="mode-select" class="mode-select">
+                    <option value="classic">CLASSIC (Static Hold)</option>
+                    <option value="flick">FLICK & HOLD (Moving Target)</option>
+                    <option value="transfer">SPRAY TRANSFER (Multi-Target)</option>
+                </select>
+            </div>
+
+            <p style="color:#a1a1aa; margin-bottom:30px;">Keep the Red Dot inside the circle.<br>It pulls UP automatically.</p>
+            <button class="btn" onclick="triggerCountdown()">START DRILL</button>
         </div>
     </div>
 
@@ -144,31 +144,36 @@
         const ctx = canvas.getContext('2d');
         const overlayScreen = document.getElementById('overlay-screen');
         const scoreDisp = document.getElementById('score-disp');
-        const stageDisp = document.getElementById('stage-disp');
+        const statusDisp = document.getElementById('status-disp');
         const recoilFill = document.getElementById('recoil-fill');
+        const modeSelect = document.getElementById('mode-select');
 
         // Game State
         let isRunning = false;
         let startTime = 0;
         let animationFrame;
+        let gameMode = 'classic';
         
         // Physics
         let ballX = 400; 
         let ballY = 300; 
         let recoilForce = 0; 
         
-        // Config
-        const ZONE_RADIUS = 60; 
-        const BALL_RADIUS = 8; 
+        // Target Logic
+        let targets = []; // Array of active targets {x, y, active, hp}
+        let activeTargetIndex = 0;
+        let lastFlickTime = 0;
 
-        // Cross-Browser Pointer Lock
+        // Config
+        const ZONE_RADIUS = 50; // Slightly tighter for pro training
+        const BALL_RADIUS = 6; 
+
         canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
 
         function triggerCountdown() {
-            // 1. Lock Mouse Immediately
+            gameMode = modeSelect.value;
             canvas.requestPointerLock();
             
-            // 2. Start Countdown UI
             let count = 3;
             overlayScreen.innerHTML = `<div class="big-count">${count}</div>`;
             
@@ -186,23 +191,42 @@
         function startGame() {
             overlayScreen.style.display = 'none';
             
-            // Reset Values
+            // Reset Physics
             ballX = 400;
             ballY = 300;
+            recoilForce = 1.0;
             startTime = Date.now();
             isRunning = true;
+            lastFlickTime = Date.now();
 
-            // Start Loops
+            // Initialize Targets based on Mode
+            targets = [];
+            if (gameMode === 'classic') {
+                targets.push({ x: 400, y: 300, active: true, hp: 100 });
+            } 
+            else if (gameMode === 'flick') {
+                targets.push({ x: 400, y: 300, active: true, hp: 100 });
+            } 
+            else if (gameMode === 'transfer') {
+                // Spawn 2 targets initially
+                spawnMultiTarget(true); // Active
+                spawnMultiTarget(false); // Inactive
+            }
+
             document.addEventListener("mousemove", handleMouse, false);
             document.addEventListener("pointerlockchange", lockChangeAlert, false);
-            
             gameLoop();
         }
 
+        function spawnMultiTarget(isActive) {
+            // Random position but keep away from edges
+            const x = Math.random() * (700 - 100) + 100;
+            const y = Math.random() * (500 - 100) + 100;
+            targets.push({ x: x, y: y, active: isActive, hp: 100, maxHp: 100 });
+        }
+
         function lockChangeAlert() {
-            if (document.pointerLockElement !== canvas && isRunning) {
-                gameOver(); // Failed because user Tabbed out/Escaped
-            }
+            if (document.pointerLockElement !== canvas && isRunning) gameOver("PAUSED");
         }
 
         function handleMouse(e) {
@@ -214,53 +238,92 @@
         function gameLoop() {
             if (!isRunning) return;
 
-            // --- 1. CALCULATE TIME & STAGE ---
-            let elapsed = (Date.now() - startTime) / 1000;
-            
-            // Stage Logic (Every 5 seconds)
-            let stageName = "";
-            let stageColor = "";
-            
-            if (elapsed < 5) {
-                recoilForce = 1.0; // Stage 1: Easy (MP5)
-                stageName = "STAGE 1";
-                stageColor = "var(--stage-1)";
-            } else if (elapsed < 10) {
-                recoilForce = 1.8; // Stage 2: Medium (Jager)
-                stageName = "STAGE 2";
-                stageColor = "var(--stage-2)";
-            } else if (elapsed < 15) {
-                recoilForce = 2.8; // Stage 3: Hard (Twitch/Buck)
-                stageName = "STAGE 3";
-                stageColor = "var(--stage-3)";
-            } else {
-                recoilForce = 3.8; // Stage 4: Insane (SMG-11)
-                stageName = "STAGE 4";
-                stageColor = "var(--stage-4)";
-            }
+            let now = Date.now();
+            let elapsed = (now - startTime) / 1000;
 
-            // Update UI
-            scoreDisp.innerText = elapsed.toFixed(2) + "s";
-            stageDisp.innerText = stageName;
-            stageDisp.style.color = stageColor;
-            recoilFill.style.background = stageColor;
+            // --- 1. MODE LOGIC ---
             
-            // Bar fills up every 5 seconds (0-100%)
-            let stageProgress = (elapsed % 5) / 5 * 100;
-            if (elapsed > 15) stageProgress = 100; // Max out at stage 4
-            recoilFill.style.width = stageProgress + "%";
+            if (gameMode === 'classic') {
+                // Simple difficulty ramp
+                recoilForce = 1.0 + (elapsed * 0.05); 
+                statusDisp.innerText = "HOLD";
+            } 
+            
+            else if (gameMode === 'flick') {
+                recoilForce = 1.2 + (elapsed * 0.02);
+                
+                // Move target every 4 seconds
+                if (now - lastFlickTime > 4000) {
+                    targets[0].x = Math.random() * (600 - 200) + 200;
+                    targets[0].y = Math.random() * (450 - 150) + 150;
+                    lastFlickTime = now;
+                    statusDisp.innerText = "FLICK!";
+                    statusDisp.style.color = "#eab308"; // Yellow alert
+                } else {
+                    statusDisp.innerText = "HOLD";
+                    statusDisp.style.color = "#fff";
+                }
+            } 
+            
+            else if (gameMode === 'transfer') {
+                recoilForce = 1.5; // Constant pressure
+                
+                // Find the active target
+                let activeT = targets.find(t => t.active);
+                
+                // Check if player is inside the active target
+                let dist = Math.hypot(ballX - activeT.x, ballY - activeT.y);
+                
+                if (dist < ZONE_RADIUS) {
+                    // Draining HP (Killing the target)
+                    activeT.hp -= 2; 
+                    statusDisp.innerText = "KILLING...";
+                    statusDisp.style.color = "#22c55e";
+                } else {
+                    statusDisp.innerText = "MISSING";
+                    statusDisp.style.color = "#ef4444";
+                }
+
+                // Target Dead?
+                if (activeT.hp <= 0) {
+                    // Switch active to the other one
+                    targets = targets.filter(t => t !== activeT); // Remove dead
+                    if (targets.length > 0) {
+                        targets[0].active = true; // Activate next
+                    }
+                    // Spawn a new inactive one
+                    spawnMultiTarget(false);
+                }
+            }
 
             // --- 2. PHYSICS ---
             let jitter = (Math.random() - 0.5) * (recoilForce * 1.5);
             ballY -= recoilForce; 
             ballX += jitter;
 
-            // --- 3. CHECK DEATH ---
-            let dist = Math.hypot(ballX - 400, ballY - 300);
-            if (dist > ZONE_RADIUS) {
-                gameOver();
+            // --- 3. CHECK FAILURE ---
+            // In flick/classic, if you leave the circle you die.
+            // In transfer, you don't die from position, only if you run out of canvas (too high/low)
+            
+            if (gameMode !== 'transfer') {
+                let currentTarget = targets[0];
+                let dist = Math.hypot(ballX - currentTarget.x, ballY - currentTarget.y);
+                if (dist > ZONE_RADIUS) {
+                    gameOver("LOST CONTROL");
+                    return;
+                }
+            }
+
+            // General Bounds Check (Don't let ball fly off screen)
+            if (ballY < 0 || ballY > 600 || ballX < 0 || ballX > 800) {
+                gameOver("OFF SCREEN");
                 return;
             }
+
+            // UI Updates
+            scoreDisp.innerText = elapsed.toFixed(2) + "s";
+            let visualRecoil = Math.min(100, (recoilForce / 4) * 100);
+            recoilFill.style.width = visualRecoil + "%";
 
             draw();
             animationFrame = requestAnimationFrame(gameLoop);
@@ -269,55 +332,82 @@
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Safe Zone
-            ctx.beginPath();
-            ctx.arc(400, 300, ZONE_RADIUS, 0, Math.PI * 2);
-            ctx.strokeStyle = "#444";
-            ctx.lineWidth = 4;
-            ctx.stroke();
-            
-            // Crosshair
-            ctx.strokeStyle = "rgba(255,255,255,0.1)";
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(0, 300); ctx.lineTo(800, 300);
-            ctx.moveTo(400, 0); ctx.lineTo(400, 600);
-            ctx.stroke();
+            // Draw Targets
+            targets.forEach(t => {
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, ZONE_RADIUS, 0, Math.PI * 2);
+                
+                if (t.active) {
+                    ctx.strokeStyle = "#22c55e"; // Green for Active
+                    ctx.lineWidth = 4;
+                    // Draw HP fill for active
+                    ctx.fillStyle = "rgba(34, 197, 94, 0.2)";
+                    ctx.fill();
+                } else {
+                    ctx.strokeStyle = "#52525b"; // Grey for Inactive
+                    ctx.lineWidth = 2;
+                }
+                ctx.stroke();
+                
+                // Draw HP Ring for Transfer Mode
+                if (gameMode === 'transfer' && t.active) {
+                    ctx.beginPath();
+                    ctx.arc(t.x, t.y, ZONE_RADIUS - 5, 0, (Math.PI * 2) * (t.hp / 100));
+                    ctx.strokeStyle = "#fff";
+                    ctx.stroke();
+                }
+            });
 
-            // The Ball
+            // Player Dot
             ctx.beginPath();
             ctx.arc(ballX, ballY, BALL_RADIUS, 0, Math.PI * 2);
             ctx.fillStyle = "#ef4444"; 
             ctx.fill();
             
-            // Tension Line
-            ctx.beginPath();
-            ctx.moveTo(400, 300);
-            ctx.lineTo(ballX, ballY);
-            ctx.strokeStyle = "rgba(239, 68, 68, 0.3)";
-            ctx.lineWidth = 2;
-            ctx.stroke();
+            // Tension Line (Connect ball to active target center)
+            let activeT = targets.find(t => t.active) || targets[0];
+            if (activeT) {
+                ctx.beginPath();
+                ctx.moveTo(activeT.x, activeT.y);
+                ctx.lineTo(ballX, ballY);
+                ctx.strokeStyle = "rgba(239, 68, 68, 0.3)";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
         }
 
-        function gameOver() {
+        function gameOver(reason) {
             isRunning = false;
             document.exitPointerLock();
             document.removeEventListener("mousemove", handleMouse, false);
             cancelAnimationFrame(animationFrame);
 
-            // Get Final Score
-            let finalTime = scoreDisp.innerText;
-            let finalStage = stageDisp.innerText;
-            let finalColor = stageDisp.style.color;
-
             // Rebuild Overlay
             overlayScreen.style.display = 'flex';
+            
+            // Recreate standard layout
             overlayScreen.innerHTML = `
-                <h1 style="color:#ef4444">LOST CONTROL</h1>
-                <p>You reached <span style="color:${finalColor}; font-weight:bold;">${finalStage}</span></p>
-                <div style="font-size:3rem; font-weight:800; color:white; margin-bottom:20px;">${finalTime}</div>
-                <button class="btn" onclick="triggerCountdown()">RETRY</button>
+                <h1 style="color:#ef4444">${reason}</h1>
+                <p>Time Alive: <strong style="color:white; font-size:1.5rem;">${scoreDisp.innerText}</strong></p>
+                
+                <div style="margin-top:20px; text-align:center;">
+                    <label style="color:#aaa; font-size:0.8rem;">MODE SELECTION</label><br>
+                    <select id="mode-select-end" class="mode-select">
+                        <option value="classic" ${gameMode === 'classic' ? 'selected' : ''}>CLASSIC</option>
+                        <option value="flick" ${gameMode === 'flick' ? 'selected' : ''}>FLICK & HOLD</option>
+                        <option value="transfer" ${gameMode === 'transfer' ? 'selected' : ''}>SPRAY TRANSFER</option>
+                    </select>
+                </div>
+
+                <button class="btn" onclick="retryFromEnd()">RETRY</button>
             `;
+        }
+
+        function retryFromEnd() {
+            // Update mode from the Game Over screen selection
+            const endSelect = document.getElementById('mode-select-end');
+            modeSelect.value = endSelect.value; 
+            triggerCountdown();
         }
     </script>
 </body>
