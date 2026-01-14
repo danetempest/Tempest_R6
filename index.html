@@ -16,37 +16,25 @@
             --text-main: #f8fafc;
             --text-dim: #94a3b8;
             --border: 1px solid rgba(255, 255, 255, 0.08);
-            --phonk-color: #d946ef; /* Magenta for Phonk Mode */
         }
         
         * { box-sizing: border-box; user-select: none; }
         
         body { 
             background-color: var(--bg);
-            /* Tactical Grid Pattern */
             background-image: 
                 linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
             background-size: 30px 30px;
             color: var(--text-main); 
             font-family: 'Inter', system-ui, -apple-system, sans-serif; 
-            margin: 0; 
-            min-height: 100vh; 
-            overflow-x: hidden;
-            position: relative;
-            padding-bottom: 60px;
+            margin: 0; min-height: 100vh; overflow-x: hidden; position: relative; padding-bottom: 60px;
         }
-
-        /* Vignette Effect */
         body::after {
-            content: "";
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: radial-gradient(circle at center, transparent 0%, #050505 100%);
-            pointer-events: none;
-            z-index: -1;
+            pointer-events: none; z-index: -1;
         }
-
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0a0a0a; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
@@ -54,24 +42,16 @@
 
         .icon-lg { width: 64px; height: 64px; fill: var(--accent); margin-bottom: 20px; }
 
-        /* --- VIEW MANAGEMENT --- */
-        .view-section {
-            display: none; width: 100vw; min-height: 100vh;
-            flex-direction: column; align-items: center; padding: 40px 20px;
-            animation: fadeIn 0.4s ease-out;
-        }
+        .view-section { display: none; width: 100vw; min-height: 100vh; flex-direction: column; align-items: center; padding: 40px 20px; animation: fadeIn 0.4s ease-out; }
         .view-section.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* --- DASHBOARD --- */
         #dashboard-view { justify-content: center; gap: 50px; }
-        
         .dash-title {
             font-size: 3.5rem; font-weight: 900; letter-spacing: -2px;
             background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 40px var(--accent-glow); text-align: center;
-            text-transform: uppercase;
+            text-shadow: 0 0 40px var(--accent-glow); text-align: center; text-transform: uppercase;
         }
 
         .module-grid { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; max-width: 1400px; }
@@ -79,10 +59,8 @@
         .module-card {
             width: 300px; height: 380px;
             background: var(--card); border: var(--border); border-radius: 20px;
-            padding: 40px 30px;
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            transition: 0.3s; cursor: pointer;
-            backdrop-filter: blur(5px);
+            padding: 40px 30px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
+            transition: 0.3s; cursor: pointer; backdrop-filter: blur(5px);
         }
         .module-card:hover { transform: translateY(-10px); border-color: var(--accent); box-shadow: 0 20px 50px rgba(56, 189, 248, 0.15); }
         .module-card h2 { margin: 0; font-size: 1.5rem; font-weight: 800; color: #fff; letter-spacing: 0.5px; }
@@ -107,7 +85,6 @@
         .progress-track { width: 100%; height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
         .progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.5s; box-shadow: 0 0 10px var(--accent-glow); }
 
-        /* Stats Grid */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 10px; }
         .bento-card { 
             background: var(--panel); border: var(--border); border-radius: 12px; padding: 15px; 
@@ -116,132 +93,66 @@
         .stat-label { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; font-weight: 700; }
         .hero-val { font-size: 3rem; font-weight: 900; color: #fff; line-height: 1; }
 
-        /* Viewport */
         .viewport { 
-            height: 450px; 
-            background: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
+            height: 450px; background: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
             border-radius: 12px; position: relative; overflow: hidden; 
-            border: 2px solid #333; perspective: 1000px;
-            transition: 0.2s;
+            border: 2px solid #333; perspective: 1000px; transition: 0.2s;
         }
-        
-        /* PHONK MODE EFFECTS */
-        .viewport.phonk-active {
-            border-color: var(--phonk-color);
-            box-shadow: 0 0 40px rgba(217, 70, 239, 0.2);
-            animation: phonk-pulse 0.4s infinite;
-        }
-        .viewport.phonk-active .wall {
-            border-color: var(--phonk-color);
-        }
-        @keyframes phonk-pulse {
-            0% { transform: scale(1); filter: hue-rotate(0deg); }
-            50% { transform: scale(1.005); filter: hue-rotate(10deg); }
-            100% { transform: scale(1); filter: hue-rotate(0deg); }
-        }
+        .viewport.phonk-active { border-color: #d946ef; box-shadow: 0 0 40px rgba(217, 70, 239, 0.2); animation: phonk-pulse 0.4s infinite; }
+        .viewport.phonk-active .wall { border-color: #d946ef; }
+        @keyframes phonk-pulse { 0% { transform: scale(1); filter: hue-rotate(0deg); } 50% { transform: scale(1.005); filter: hue-rotate(10deg); } 100% { transform: scale(1); filter: hue-rotate(0deg); } }
 
-        /* 3D World */
         .world-container { position: absolute; width: 300%; height: 100%; left: -100%; top: 0; transform-style: preserve-3d; }
         .hallway { position: absolute; width: 33.33%; height: 100%; left: 33.33%; transform-style: preserve-3d; }
-        .floor { 
-            position: absolute; width: 2000px; height: 2000px; left: 50%; bottom: -600px; margin-left: -1000px; 
-            background: repeating-linear-gradient(90deg, #1c1c1e 0px, #1c1c1e 48px, #333 48px, #333 50px), 
-                        repeating-linear-gradient(0deg, #1c1c1e 0px, #1c1c1e 48px, #333 48px, #333 50px); 
-            transform: rotateX(85deg); 
-        }
+        .floor { position: absolute; width: 2000px; height: 2000px; left: 50%; bottom: -600px; margin-left: -1000px; background: repeating-linear-gradient(90deg, #1c1c1e 0px, #1c1c1e 48px, #333 48px, #333 50px), repeating-linear-gradient(0deg, #1c1c1e 0px, #1c1c1e 48px, #333 48px, #333 50px); transform: rotateX(85deg); }
         .wall { position: absolute; width: 800px; height: 100%; top: -200px; background: linear-gradient(90deg, #000, #111); }
         .wall-left { left: -300px; transform: rotateY(80deg); }
         .wall-right { right: -300px; transform: rotateY(-80deg); background: linear-gradient(-90deg, #000, #111); }
-        
         .doorframe { position: absolute; width: 140px; height: 100%; left: 50%; top: 0; margin-left: -70px; z-index: 10; pointer-events: none; transition: width 0.3s, margin-left 0.3s; }
         .door-col { position: absolute; width: 40px; height: 100%; background: #222; border: 1px solid #444; }
-
-        .enemy-target { 
-            position: absolute; top: 50%; left: 50%; margin-top: -30px; 
-            width: 40px; height: 80px; z-index: 5; transition: transform 0.05s, opacity 0.1s; 
-        }
+        .enemy-target { position: absolute; top: 50%; left: 50%; margin-top: -30px; width: 40px; height: 80px; z-index: 5; transition: transform 0.05s, opacity 0.1s; }
         .enemy-target.dead { opacity: 0; transform: scale(0.9); }
-        .enemy-head { 
-            position: absolute; top: 0; left: 5px; width: 30px; height: 30px; 
-            background: #ef4444; border-radius: 50%; border: 2px solid #991b1b;
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
-        }
+        .enemy-head { position: absolute; top: 0; left: 5px; width: 30px; height: 30px; background: #ef4444; border-radius: 50%; border: 2px solid #991b1b; box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
         .enemy-body { position: absolute; top: 32px; left: 0; width: 40px; height: 50px; background: #ef4444; border-radius: 4px; opacity: 0.6; }
-
         .weapon-container { position: absolute; bottom: 0; left: 50%; width: 200px; height: 160px; margin-left: -100px; z-index: 50; pointer-events: none; }
         .weapon-model { position: absolute; bottom: -20px; left: 50%; margin-left: -40px; transition: transform 0.03s linear; }
         .gun-body { width: 80px; height: 45px; background: #111; border-radius: 4px; border: 1px solid #333; position: relative; }
         .gun-optic { position: absolute; top: -15px; left: 20px; width: 40px; height: 15px; background: #000; border: 1px solid var(--accent); box-shadow: 0 0 5px var(--accent); }
-
-        .crosshair { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            width: 20px; height: 20px; z-index: 100; pointer-events: none;
-            display: flex; align-items: center; justify-content: center;
-        }
+        .crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; z-index: 100; pointer-events: none; display: flex; align-items: center; justify-content: center; }
         .ch-line { position: absolute; background: var(--accent); }
         .ch-h { width: 100%; height: 2px; } .ch-v { width: 2px; height: 100%; }
         .ch-dot { width: 4px; height: 4px; background: var(--accent); border-radius: 50%; }
-
-        /* HUD Keys */
-        .combo-track { 
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); 
-            z-index: 80; display: flex; gap: 12px; 
-        }
-        .key-node { 
-            width: 50px; height: 50px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); 
-            border-radius: 10px; display: flex; align-items: center; justify-content: center; 
-            font-size: 1.2rem; font-weight: 800; color: #555; transition: 0.1s;
-        }
+        
+        .combo-track { position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 80; display: flex; gap: 12px; }
+        .key-node { width: 50px; height: 50px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: 800; color: #555; transition: 0.1s; }
         .key-node.active { opacity: 1; border-color: var(--accent); color: #fff; box-shadow: 0 0 15px var(--accent-glow); transform: scale(1.1); }
         .key-node.hit { background: var(--accent); border-color: var(--accent); color: #000; }
 
-        /* Streak & Feedback */
         .feedback-text { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); font-size: 2rem; font-weight: 900; opacity: 0; transition: 0.2s; z-index: 100; text-shadow: 0 4px 10px rgba(0,0,0,0.8); }
         .feedback-text.show { opacity: 1; }
-        
-        .streak-popup {
-            position: absolute; top: 40%; left: 60%; 
-            font-size: 4rem; font-weight: 900; color: var(--accent);
-            text-shadow: 0 0 20px var(--accent);
-            opacity: 0; pointer-events: none; z-index: 200;
-            transform: translate(-50%, -50%) scale(0.5);
-        }
+        .streak-popup { position: absolute; top: 40%; left: 60%; font-size: 4rem; font-weight: 900; color: var(--accent); text-shadow: 0 0 20px var(--accent); opacity: 0; pointer-events: none; z-index: 200; transform: translate(-50%, -50%) scale(0.5); }
         .streak-popup.pop { animation: popText 0.3s ease-out; }
         @keyframes popText { 0% { opacity: 1; transform: scale(0.5); } 50% { transform: scale(1.2); } 100% { opacity: 0; transform: scale(1.5); } }
         .confetti { position: absolute; width: 8px; height: 8px; background: var(--accent); animation: fall 1s linear forwards; z-index: 999; }
         @keyframes fall { to { transform: translateY(300px) rotate(360deg); opacity: 0; } }
 
-        /* Controls UI */
         .controls-wrapper { display: flex; flex-direction: column; gap: 10px; }
         .control-row { display: flex; gap: 10px; width: 100%; }
         .glass-panel { background: var(--panel); border: 1px solid #333; border-radius: 8px; padding: 15px; flex: 1; }
         .input-label { font-size: 0.65rem; color: var(--text-dim); font-weight: 700; display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
         .styled-slider { width: 100%; height: 4px; background: #333; border-radius: 2px; -webkit-appearance: none; display: block; margin-top: 10px; }
         .styled-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; cursor: pointer; }
-        
         .select-box { background: #000; color: #fff; border: 1px solid #333; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.85rem; }
         .btn { background: #111; border: 1px solid #333; color: var(--text-dim); padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.8rem; transition: 0.2s; letter-spacing: 0.5px; }
         .btn:hover { border-color: var(--accent); color: #fff; }
         .btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
-        
-        /* PHONK BUTTON STYLE */
-        #phonk-btn.active { background: var(--phonk-color); border-color: var(--phonk-color); color:#fff; box-shadow: 0 0 15px var(--phonk-color); }
+        #phonk-btn.active { background: #d946ef; border-color: #d946ef; color:#fff; box-shadow: 0 0 15px #d946ef; }
 
-        /* STRAT BOARD SPECIFIC */
-        .strat-display-box {
-            background: #111; border: 1px solid #333; border-radius: 12px; padding: 20px;
-            margin-top: 20px; width: 100%; max-width: 600px;
-            display: flex; flex-direction: column; gap: 15px;
-        }
+        .strat-display-box { background: #111; border: 1px solid #333; border-radius: 12px; padding: 20px; margin-top: 20px; width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 15px; }
         .strat-row { display: flex; justify-content: space-between; border-bottom: 1px solid #222; padding-bottom: 10px; }
         .strat-key { color: var(--accent); font-weight: 700; font-size: 0.8rem; text-transform: uppercase; }
         .strat-val { color: #ddd; font-size: 0.9rem; text-align: right; max-width: 70%; }
-        
-        .active-strat-text {
-            font-size: 1.1rem; color: #555; font-style: italic; text-align: center;
-            padding: 15px; background: #0a0a0a; border-radius: 8px; border: 1px dashed #333;
-            transition: 0.3s;
-        }
+        .active-strat-text { font-size: 1.1rem; color: #555; font-style: italic; text-align: center; padding: 15px; background: #0a0a0a; border-radius: 8px; border: 1px dashed #333; transition: 0.3s; }
 
     </style>
 </head>
@@ -281,6 +192,15 @@
                     <h2>RECOIL LAB</h2>
                     <p>Vertical pull-down trainer. Keep the dot centered against rising recoil.</p>
                     <div class="module-btn">ENTER LAB</div>
+                </div>
+            </a>
+
+            <a href="reflex.html" style="text-decoration: none;">
+                <div class="module-card">
+                    <svg class="icon-lg" viewBox="0 0 24 24"><path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z"/></svg>
+                    <h2>REFLEX GRID</h2>
+                    <p>Raw hand speed and micro-flick trainer. Gridshot protocol.</p>
+                    <div class="module-btn">START WARMUP</div>
                 </div>
             </a>
 
@@ -442,52 +362,14 @@
     </footer>
 
     <script>
-        // ==========================================
-        // MAP DATABASE (UBISOFT OFFICIAL)
-        // ==========================================
         const mapDatabase = {
-            'oregon': {
-                link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/oregon',
-                callouts: ['Laundry', 'Kids Dorms', 'Big Tower', 'Freezer'],
-                bestOps: ['Smoke', 'Azami', 'Kaid', 'Ying'],
-                strats: ["THE LAUNDRY TURTLE: Smoke/Mute hold downstairs.", "THE BIG TOWER FLANK: Roam heavy in Attic/Tower.", "GLAZ/YING EXECUTE: Smoke out the site and plant."]
-            },
-            'clubhouse': {
-                link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/clubhouse',
-                callouts: ['CCTV', 'Cash', 'Garage', 'Tunnel'],
-                bestOps: ['Bandit', 'Maverick', 'Valkyrie', 'Capitao'],
-                strats: ["BANDIT TRICK: Actively trick the CCTV wall.", "SSG ROAM: Extend defense into Bedroom/Gym.", "MAVERICK TORCH: Murder holes instead of opening walls."]
-            },
-            'coastline': {
-                link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/coastline',
-                callouts: ['Hookah', 'Billards', 'VIP', 'Penthouse'],
-                bestOps: ['Doc', 'Valkyrie', 'Lion', 'Amaru'],
-                strats: ["AGGRESSIVE PEEK: Spawn peek from Sunrise Bar.", "VERTICAL PRESSURE: Buck/Sledge from above.", "THE RUSH: Amaru into Penthouse window."]
-            },
-            'consulate': {
-                link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/consulate',
-                callouts: ['Garage', 'Piano', 'Yellow Stairs', 'Admin'],
-                bestOps: ['Nomad', 'Blackbeard', 'Goyo', 'Thermite'],
-                strats: ["YELLOW STAIRS HOLD: Shotgun/shield lockdown.", "RAPPEL HELL: Attackers upside down on windows.", "GARAGE BREACH: Thermite/Thatcher mandatory."]
-            },
-            'bank': {
-                link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/bank',
-                callouts: ['Open Area', 'Lockers', 'Square', 'CEO'],
-                bestOps: ['Mira', 'Hibana', 'Kali', 'Pulse'],
-                strats: ["PULSE SCAN: C4 the plant from below.", "KALI SNIPE: Long angles from Parking Garage.", "OPEN AREA HOLD: Reinforce hatches, play Mira."]
-            },
-            'chalet': {
-                link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/chalet',
-                callouts: ['Snowmobile', 'Wine', 'Library', 'Mezzanine'],
-                bestOps: ['Frost', 'Thatcher', 'Solis', 'Osa'],
-                strats: ["SOLIS DENIAL: Hunt drones in prep phase.", "OSA PUSH: Plant safely in garage breach.", "LIBRARY CONTROL: Defenders must hold top floor."]
-            },
-            'kafe': {
-                link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/kafe-dostoyevsky',
-                callouts: ['Piano', 'Skylight', 'Bakery', 'Freezer'],
-                bestOps: ['Castle', 'Wamai', 'Nokk', 'Zero'],
-                strats: ["PIANO HOLD: Castle off Piano room.", "SKYLIGHT DROP: Hot drop with Amaru.", "BELOW C4: Valk cams for C4 kills."]
-            }
+            'oregon': { link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/oregon', callouts: ['Laundry', 'Kids Dorms', 'Big Tower', 'Freezer'], bestOps: ['Smoke', 'Azami', 'Kaid', 'Ying'], strats: ["THE LAUNDRY TURTLE: Smoke/Mute hold downstairs.", "THE BIG TOWER FLANK: Roam heavy in Attic/Tower.", "GLAZ/YING EXECUTE: Smoke out the site and plant."] },
+            'clubhouse': { link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/clubhouse', callouts: ['CCTV', 'Cash', 'Garage', 'Tunnel'], bestOps: ['Bandit', 'Maverick', 'Valkyrie', 'Capitao'], strats: ["BANDIT TRICK: Actively trick the CCTV wall.", "SSG ROAM: Extend defense into Bedroom/Gym.", "MAVERICK TORCH: Murder holes instead of opening walls."] },
+            'coastline': { link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/coastline', callouts: ['Hookah', 'Billards', 'VIP', 'Penthouse'], bestOps: ['Doc', 'Valkyrie', 'Lion', 'Amaru'], strats: ["AGGRESSIVE PEEK: Spawn peek from Sunrise Bar.", "VERTICAL PRESSURE: Buck/Sledge from above.", "THE RUSH: Amaru into Penthouse window."] },
+            'consulate': { link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/consulate', callouts: ['Garage', 'Piano', 'Yellow Stairs', 'Admin'], bestOps: ['Nomad', 'Blackbeard', 'Goyo', 'Thermite'], strats: ["YELLOW STAIRS HOLD: Shotgun/shield lockdown.", "RAPPEL HELL: Attackers upside down on windows.", "GARAGE BREACH: Thermite/Thatcher mandatory."] },
+            'bank': { link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/bank', callouts: ['Open Area', 'Lockers', 'Square', 'CEO'], bestOps: ['Mira', 'Hibana', 'Kali', 'Pulse'], strats: ["PULSE SCAN: C4 the plant from below.", "KALI SNIPE: Long angles from Parking Garage.", "OPEN AREA HOLD: Reinforce hatches, play Mira."] },
+            'chalet': { link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/chalet', callouts: ['Snowmobile', 'Wine', 'Library', 'Mezzanine'], bestOps: ['Frost', 'Thatcher', 'Solis', 'Osa'], strats: ["SOLIS DENIAL: Hunt drones in prep phase.", "OSA PUSH: Plant safely in garage breach.", "LIBRARY CONTROL: Defenders must hold top floor."] },
+            'kafe': { link: 'https://www.ubisoft.com/en-us/game/rainbow-six/siege/game-info/maps/kafe-dostoyevsky', callouts: ['Piano', 'Skylight', 'Bakery', 'Freezer'], bestOps: ['Castle', 'Wamai', 'Nokk', 'Zero'], strats: ["PIANO HOLD: Castle off Piano room.", "SKYLIGHT DROP: Hot drop with Amaru.", "BELOW C4: Valk cams for C4 kills."] }
         };
 
         function updateStratDisplay() {
@@ -506,9 +388,7 @@
             if (data) {
                 const randomStrat = data.strats[Math.floor(Math.random() * data.strats.length)];
                 const display = document.getElementById('active-strat');
-                display.style.opacity = 0;
-                display.innerText = randomStrat;
-                display.style.color = "#22c55e"; 
+                display.style.opacity = 0; display.innerText = randomStrat; display.style.color = "#22c55e"; 
                 setTimeout(() => { display.style.opacity = 1; }, 100);
             }
         }
@@ -519,9 +399,6 @@
             if(data) window.open(data.link, '_blank');
         }
 
-        // ==========================================
-        // SHAIIKO TRAINER LOGIC
-        // ==========================================
         const SEQS = { 'ADEQ': ['a','d','e','q'], 'DAQE': ['d','a','q','e'] };
         let currentSide = 'ADEQ', idx = 0, startTime = 0, streak = 0, attempts = 0, sRanks = 0, bpm = 120, difficultyMult = 1.0, mode = 'full';
         let cx=0, tx=0, cLean=0, tLean=0;
@@ -616,7 +493,6 @@
             updateStats(0, 'FAIL');
         }
 
-        // --- PHONK & AUDIO ENGINE ---
         function togglePhonk() {
             if(phonkActive) {
                 phonkActive = false;
@@ -626,9 +502,7 @@
             } else {
                 if(audioCtx.state === 'suspended') audioCtx.resume();
                 phonkActive = true;
-                // Auto-set BPM to 155 for Phonk
-                bpm = 155; 
-                document.getElementById('bpm-val').innerText = 155;
+                bpm = 155; document.getElementById('bpm-val').innerText = 155;
                 document.getElementById('phonk-btn').classList.add('active');
                 document.getElementById('viewport').classList.add('phonk-active');
                 playBeat();
@@ -636,9 +510,7 @@
         }
 
         function toggleMusic() {
-            // "BEAT SYNC" (Standard mode)
-            if(phonkActive) { togglePhonk(); return; } // Turn off phonk first
-            
+            if(phonkActive) { togglePhonk(); return; }
             if(musicInterval) {
                 clearInterval(musicInterval); musicInterval = null;
                 document.getElementById('music-btn').classList.remove('active');
@@ -653,14 +525,11 @@
             const interval = 60000 / bpm;
             clearInterval(musicInterval);
             let step = 0;
-            
             musicInterval = setInterval(() => {
                 if(phonkActive) {
-                    // PHONK BEAT: Cowbell pattern
-                    if(step % 4 === 0) playDrum(60, 'square'); // Distorted Kick
-                    if(step % 4 === 2) playDrum(800, 'triangle'); // Cowbell
+                    if(step % 4 === 0) playDrum(60, 'square'); 
+                    if(step % 4 === 2) playDrum(800, 'triangle'); 
                 } else {
-                    // STANDARD BEAT
                     if(step % 4 === 0) playDrum(150, 'sine');
                     if(step % 4 === 2) playDrum(200, 'triangle');
                 }
@@ -673,16 +542,13 @@
             const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.frequency.value = freq; osc.type = type;
-            
-            // Phonk Distortion (Louder)
             let vol = phonkActive ? 0.3 : 0.2; 
-            
             gain.gain.setValueAtTime(vol, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
             osc.start(); osc.stop(audioCtx.currentTime + 0.1);
         }
 
-        function setBPM(val) { bpm = val; document.getElementById('bpm-val').innerText = val; if(musicInterval) playBeat(); }
+        function setBPM(val) { bpm = val; document.getElementById('bpm-val').innerText = val; if(musicInterval || phonkActive) playBeat(); }
         function setDoorWidth(val) { document.getElementById('doorframe').style.width = val + 'px'; document.getElementById('doorframe').style.marginLeft = -(val/2) + 'px'; }
         function setDifficulty(val) { difficultyMult = parseFloat(val); }
         function setMode(val) { mode = val; resetRound(); }
@@ -694,7 +560,6 @@
             document.getElementById(id).classList.add('active');
         }
 
-        // Init
         randomizeTarget();
         updateStratDisplay();
     </script>
