@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>R6 COACH PRO: COMMAND CENTER</title>
+    <title>TEMPEST R6 TRAINER</title>
     <style>
         :root { 
             /* THEME: Matte Black, Space Gray, Electric Blue */
@@ -48,6 +48,7 @@
             background: linear-gradient(135deg, #fff 0%, var(--accent) 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-shadow: 0 0 40px var(--accent-glow); text-align: center;
+            text-transform: uppercase;
         }
 
         .module-grid { display: flex; gap: 30px; flex-wrap: wrap; justify-content: center; max-width: 1400px; }
@@ -188,7 +189,8 @@
 <body>
 
     <div id="dashboard-view" class="view-section active">
-        <div class="dash-title">R6 COACH PRO</div>
+        <div class="dash-title">TEMPEST R6 TRAINER</div>
+        
         <div class="module-grid">
             
             <div class="module-card" onclick="goToView('trainer-view')">
@@ -525,6 +527,20 @@
         function setMode(val) { mode = val; resetRound(); }
         function triggerPopup(text) { const el = document.getElementById('streak-pop'); el.innerText = text; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
         function fireConfetti() { triggerPopup("CONFIDENCE!"); for(let i=0; i<20; i++) { const c = document.createElement('div'); c.className = 'confetti'; c.style.left = Math.random() * 100 + "%"; document.getElementById('viewport').appendChild(c); setTimeout(() => c.remove(), 1000); } }
+
+        function launchR6Calls() {
+            const map = document.getElementById('r6-map-select').value;
+            const links = {
+                'oregon': 'https://r6calls.com/maps/oregon',
+                'clubhouse': 'https://r6calls.com/maps/clubhouse',
+                'coastline': 'https://r6calls.com/maps/coastline',
+                'bank': 'https://r6calls.com/maps/bank',
+                'chalet': 'https://r6calls.com/maps/chalet',
+                'kafe': 'https://r6calls.com/maps/kafe-dostoyevsky',
+                'consulate': 'https://r6calls.com/maps/consulate'
+            };
+            window.open(links[map], 'R6StratBoard', 'width=1200,height=800,menubar=no,toolbar=no');
+        }
 
         function goToView(id) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
