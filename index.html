@@ -223,9 +223,7 @@
             
             <a href="pixel-peek.html" style="text-decoration: none;">
                 <div class="module-card">
-                    <svg class="icon-lg" viewBox="0 0 24 24">
-                        <path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-                    </svg>
+                    <svg class="icon-lg" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
                     <h2>NEURO TRAINER</h2>
                     <p>Reaction speed, impulse control, and consistency training.</p>
                     <div class="module-btn">START SESSION</div>
@@ -234,9 +232,7 @@
 
             <a href="recoil.html" style="text-decoration: none;">
                 <div class="module-card">
-                    <svg class="icon-lg" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-                    </svg>
+                    <svg class="icon-lg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
                     <h2>RECOIL LAB</h2>
                     <p>Vertical pull-down trainer. Keep the dot centered against rising recoil.</p>
                     <div class="module-btn">ENTER LAB</div>
@@ -386,8 +382,6 @@
 
         </div>
     </div>
-
-    <script src="map.js"></script>
 
     <script>
         // ==========================================
@@ -545,8 +539,123 @@
             document.getElementById(id).classList.add('active');
         }
 
+        // ==========================================
+        // MAP & STRAT LOGIC
+        // ==========================================
+        const mapDatabase = {
+            'oregon': {
+                link: 'https://r6calls.com/maps/oregon',
+                callouts: ['Laundry', 'Kids Dorms', 'Big Tower', 'Freezer'],
+                bestOps: ['Smoke', 'Azami', 'Kaid', 'Ying'],
+                strats: [
+                    "THE LAUNDRY TURTLE: Smoke/Mute hold downstairs. Deny the hatch drop.",
+                    "THE BIG TOWER FLANK: Roam heavy in Attic/Tower to cut off 2F attacks.",
+                    "GLAZ/YING EXECUTE: Smoke out the site and plant in the chaos."
+                ]
+            },
+            'clubhouse': {
+                link: 'https://r6calls.com/maps/clubhouse',
+                callouts: ['CCTV', 'Cash', 'Garage', 'Tunnel'],
+                bestOps: ['Bandit', 'Maverick', 'Valkyrie', 'Capital'],
+                strats: [
+                    "BANDIT TRICK: Dedicate one player to actively tricking the CCTV wall.",
+                    "SSG ROAM: Extend defense into Bedroom/Gym to deny vertical play.",
+                    "MAVERICK TORCH: Make murder holes in the reinforcements instead of opening them."
+                ]
+            },
+            'coastline': {
+                link: 'https://r6calls.com/maps/coastline',
+                callouts: ['Hookah', 'Billards', 'VIP', 'Penthouse'],
+                bestOps: ['Doc', 'Valkyrie', 'Lion', 'Amaru'],
+                strats: [
+                    "AGGRESSIVE PEEK: Spawn peek from Sunrise Bar or Ruins.",
+                    "VERTICAL PRESSURE: Buck/Sledge form above (VIP) onto Kitchen.",
+                    "THE RUSH: Amaru into Penthouse window immediately."
+                ]
+            },
+            'consulate': {
+                link: 'https://r6calls.com/maps/consulate',
+                callouts: ['Garage', 'Piano', 'Yellow Stairs', 'Admin'],
+                bestOps: ['Nomad', 'Blackbeard', 'Goyo', 'Thermite'],
+                strats: [
+                    "YELLOW STAIRS HOLD: Use a shotgun/shield to lock down Yellow Stairs.",
+                    "RAPPEL HELL: Attackers hang upside down on windows. Defenders stay prone.",
+                    "GARAGE BREACH: Thermite/Thatcher mandatory for the main wall."
+                ]
+            },
+            'bank': {
+                link: 'https://r6calls.com/maps/bank',
+                callouts: ['Open Area', 'Lockers', 'Square', 'CEO'],
+                bestOps: ['Mira', 'Hibana', 'Kali', 'Pulse'],
+                strats: [
+                    "PULSE SCAN: Play Pulse in Gold Vault to C4 the plant from below.",
+                    "KALI SNIPE: Hold long angles from Parking Garage into Lobby.",
+                    "OPEN AREA HOLD: Reinforce hatches and play Mira facing the skylight."
+                ]
+            },
+            'chalet': {
+                link: 'https://r6calls.com/maps/chalet',
+                callouts: ['Snowmobile', 'Wine', 'Library', 'Mezzanine'],
+                bestOps: ['Frost', 'Thatcher', 'Solis', 'Osa'],
+                strats: [
+                    "SOLIS DENIAL: Use Solis to hunt drones in the prep phase.",
+                    "OSA PUSH: Use Osa shields to plant safely in the garage breach.",
+                    "LIBRARY CONTROL: Defenders must hold Library to protect the top floor."
+                ]
+            },
+            'kafe': {
+                link: 'https://r6calls.com/maps/kafe-dostoyevsky',
+                callouts: ['Piano', 'Skylight', 'Bakery', 'Freezer'],
+                bestOps: ['Castle', 'Wamai', 'Nokk', 'Zero'],
+                strats: [
+                    "PIANO HOLD: Castle off the Piano room and waste attacker utility.",
+                    "SKYLIGHT DROP: Hot drop the skylight with Amaru or rapid repel.",
+                    "BELOW C4: Valkyrie cams in reading room for C4 kills on new hatch."
+                ]
+            }
+        };
+
+        function updateStratDisplay() {
+            const selector = document.getElementById('r6-map-select');
+            const mapKey = selector.value;
+            const data = mapDatabase[mapKey];
+
+            if (!data) return;
+
+            document.getElementById('ops-list').innerText = data.bestOps.join(' // ');
+            document.getElementById('callouts-list').innerText = data.callouts.join(' - ');
+            
+            document.getElementById('active-strat').innerText = "Select 'ROLL STRAT' to generate a plan.";
+            document.getElementById('active-strat').style.color = "#555";
+        }
+
+        function generateStrat() {
+            const selector = document.getElementById('r6-map-select');
+            const mapKey = selector.value;
+            const data = mapDatabase[mapKey];
+
+            if (data) {
+                const randomStrat = data.strats[Math.floor(Math.random() * data.strats.length)];
+                const display = document.getElementById('active-strat');
+                display.style.opacity = 0;
+                display.innerText = randomStrat;
+                display.style.color = "#22c55e"; 
+                setTimeout(() => { display.style.opacity = 1; }, 100);
+            }
+        }
+
+        function launchR6Calls() {
+            const selector = document.getElementById('r6-map-select');
+            const mapKey = selector.value;
+            const data = mapDatabase[mapKey];
+            if(data) {
+                window.open(data.link, 'R6StratBoard', 'width=1200,height=800,menubar=no,toolbar=no');
+            }
+        }
+
         // Init
         randomizeTarget();
+        updateStratDisplay();
     </script>
 </body>
 </html>
