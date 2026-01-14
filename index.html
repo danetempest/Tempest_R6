@@ -16,11 +16,11 @@
             --text-main: #f8fafc;
             --text-dim: #94a3b8;
             --border: 1px solid rgba(255, 255, 255, 0.08);
+            --phonk-color: #d946ef; /* Magenta for Phonk Mode */
         }
         
         * { box-sizing: border-box; user-select: none; }
         
-        /* --- PROFESSIONAL BACKGROUND & SCROLLBAR --- */
         body { 
             background-color: var(--bg);
             /* Tactical Grid Pattern */
@@ -28,14 +28,13 @@
                 linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
             background-size: 30px 30px;
-            
             color: var(--text-main); 
             font-family: 'Inter', system-ui, -apple-system, sans-serif; 
             margin: 0; 
             min-height: 100vh; 
             overflow-x: hidden;
             position: relative;
-            padding-bottom: 60px; /* Space for footer */
+            padding-bottom: 60px;
         }
 
         /* Vignette Effect */
@@ -123,6 +122,22 @@
             background: linear-gradient(180deg, #0a0a0a 0%, #111 100%);
             border-radius: 12px; position: relative; overflow: hidden; 
             border: 2px solid #333; perspective: 1000px;
+            transition: 0.2s;
+        }
+        
+        /* PHONK MODE EFFECTS */
+        .viewport.phonk-active {
+            border-color: var(--phonk-color);
+            box-shadow: 0 0 40px rgba(217, 70, 239, 0.2);
+            animation: phonk-pulse 0.4s infinite;
+        }
+        .viewport.phonk-active .wall {
+            border-color: var(--phonk-color);
+        }
+        @keyframes phonk-pulse {
+            0% { transform: scale(1); filter: hue-rotate(0deg); }
+            50% { transform: scale(1.005); filter: hue-rotate(10deg); }
+            100% { transform: scale(1); filter: hue-rotate(0deg); }
         }
 
         /* 3D World */
@@ -208,6 +223,9 @@
         .btn { background: #111; border: 1px solid #333; color: var(--text-dim); padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.8rem; transition: 0.2s; letter-spacing: 0.5px; }
         .btn:hover { border-color: var(--accent); color: #fff; }
         .btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+        
+        /* PHONK BUTTON STYLE */
+        #phonk-btn.active { background: var(--phonk-color); border-color: var(--phonk-color); color:#fff; box-shadow: 0 0 15px var(--phonk-color); }
 
         /* STRAT BOARD SPECIFIC */
         .strat-display-box {
@@ -359,8 +377,8 @@
                         <input type="range" class="styled-slider" min="60" max="220" step="5" value="120" oninput="setBPM(this.value)">
                     </div>
                     <div class="glass-panel" style="flex:2; display:flex; gap:10px; align-items:flex-end;">
+                        <button class="btn" style="flex:1" onclick="togglePhonk()" id="phonk-btn">PHONK MODE</button>
                         <button class="btn" style="flex:1" onclick="swapSide()">SWAP SIDE</button>
-                        <button class="btn" style="flex:1" onclick="toggleMusic()" id="music-btn">BEAT SYNC</button>
                         <button class="btn" style="flex:1" onclick="resetStats()">RESET</button>
                     </div>
                 </div>
@@ -509,7 +527,7 @@
         let cx=0, tx=0, cLean=0, tLean=0;
         const LERP_SPEED = 0.4;
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let musicInterval = null, musicActive = false;
+        let musicInterval = null, phonkActive = false;
 
         function loop() {
             cx += (tx - cx) * LERP_SPEED;
@@ -598,26 +616,54 @@
             updateStats(0, 'FAIL');
         }
 
+        // --- PHONK & AUDIO ENGINE ---
+        function togglePhonk() {
+            if(phonkActive) {
+                phonkActive = false;
+                document.getElementById('phonk-btn').classList.remove('active');
+                document.getElementById('viewport').classList.remove('phonk-active');
+                clearInterval(musicInterval);
+            } else {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                phonkActive = true;
+                // Auto-set BPM to 155 for Phonk
+                bpm = 155; 
+                document.getElementById('bpm-val').innerText = 155;
+                document.getElementById('phonk-btn').classList.add('active');
+                document.getElementById('viewport').classList.add('phonk-active');
+                playBeat();
+            }
+        }
+
         function toggleMusic() {
-            if(musicActive) {
-                clearInterval(musicInterval); musicActive=false;
+            // "BEAT SYNC" (Standard mode)
+            if(phonkActive) { togglePhonk(); return; } // Turn off phonk first
+            
+            if(musicInterval) {
+                clearInterval(musicInterval); musicInterval = null;
                 document.getElementById('music-btn').classList.remove('active');
             } else {
                 if(audioCtx.state === 'suspended') audioCtx.resume();
-                musicActive = true;
                 document.getElementById('music-btn').classList.add('active');
                 playBeat();
             }
         }
 
         function playBeat() {
-            if(!musicActive) return;
             const interval = 60000 / bpm;
             clearInterval(musicInterval);
             let step = 0;
+            
             musicInterval = setInterval(() => {
-                if(step % 4 === 0) playDrum(150, 'sine');
-                if(step % 4 === 2) playDrum(200, 'triangle');
+                if(phonkActive) {
+                    // PHONK BEAT: Cowbell pattern
+                    if(step % 4 === 0) playDrum(60, 'square'); // Distorted Kick
+                    if(step % 4 === 2) playDrum(800, 'triangle'); // Cowbell
+                } else {
+                    // STANDARD BEAT
+                    if(step % 4 === 0) playDrum(150, 'sine');
+                    if(step % 4 === 2) playDrum(200, 'triangle');
+                }
                 step++;
             }, interval / 4);
         }
@@ -627,12 +673,16 @@
             const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
             osc.frequency.value = freq; osc.type = type;
-            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            
+            // Phonk Distortion (Louder)
+            let vol = phonkActive ? 0.3 : 0.2; 
+            
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
             osc.start(); osc.stop(audioCtx.currentTime + 0.1);
         }
 
-        function setBPM(val) { bpm = val; document.getElementById('bpm-val').innerText = val; if(musicActive) playBeat(); }
+        function setBPM(val) { bpm = val; document.getElementById('bpm-val').innerText = val; if(musicInterval) playBeat(); }
         function setDoorWidth(val) { document.getElementById('doorframe').style.width = val + 'px'; document.getElementById('doorframe').style.marginLeft = -(val/2) + 'px'; }
         function setDifficulty(val) { difficultyMult = parseFloat(val); }
         function setMode(val) { mode = val; resetRound(); }
