@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reflex Grid</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+    <style>
+        :root {
+            --bg: #09090b;
+            --tile: #18181b;
+            --accent: #38bdf8; /* Blue for Reflex */
+            --hit: #f472b6; /* Pink for Hits */
+            --text: #f4f4f5;
+        }
+        body {
+            background-color: var(--bg);
+            background-image: radial-gradient(#222 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        .home-btn {
+            position: absolute; top: 20px; left: 20px;
+            background: #27272a; color: #a1a1aa; text-decoration: none;
+            padding: 10px 20px; border-radius: 6px; border: 1px solid #3f3f46;
+            font-weight: 700; font-size: 0.8rem; transition: 0.2s;
+        }
+        .home-btn:hover { border-color: #fff; color: #fff; }
+
+        /* HUD */
+        .hud {
+            display: flex; gap: 40px; margin-bottom: 20px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .stat-box { text-align: center; }
+        .label { font-size: 0.7rem; color: #71717a; font-weight: 700; }
+        .val { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+        #score-val { color: var(--accent); }
+        #time-val { color: #fff; }
+
+        /* GRID CONTAINER */
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 10px;
+            width: 500px;
+            height: 500px;
+            background: #111;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid #333;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        /* TILES */
+        .tile {
+            background: var(--tile);
+            border-radius: 8px;
+            cursor: crosshair;
+            transition: transform 0.1s, background 0.1s;
+            border: 1px solid #222;
+        }
+        .tile:active { transform: scale(0.95); }
+
+        /* ACTIVE TARGET */
+        .tile.active {
+            background: var(--accent);
+            box-shadow: 0 0 20px var(--accent);
+            border-color: #fff;
+            animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        /* HIT STATE */
+        .tile.hit {
+            background: var(--hit) !important;
+            box-shadow: 0 0 30px var(--hit);
+            transform: scale(1.1);
+        }
+
+        /* START OVERLAY */
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(9, 9, 11, 0.9);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100;
+        }
+        h1 { font-size: 3rem; margin: 0; text-transform: uppercase; font-weight: 900; color: #fff; }
+        p { color: #a1a1aa; margin-bottom: 30px; }
+        .btn {
+            background: var(--accent); color: #000; border: none;
+            padding: 15px 40px; font-size: 1.2rem; font-weight: 800;
+            border-radius: 6px; cursor: pointer; transition: 0.2s;
+        }
+        .btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent); color: #fff; }
+
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    </style>
+</head>
+<body>
+
+    <a href="index.html" class="home-btn">← DASHBOARD</a>
+
+    <div class="hud">
+        <div class="stat-box">
+            <div class="label">Score</div>
+            <div class="val" id="score-val">0</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">Time</div>
+            <div class="val" id="time-val">30</div>
+        </div>
+        <div class="stat-box">
+            <div class="label">CPS</div>
+            <div class="val" id="cps-val">0.0</div>
+        </div>
+    </div>
+
+    <div class="grid-container" id="grid">
+        </div>
+
+    <div class="overlay" id="start-screen">
+        <h1 style="color:var(--accent)">REFLEX GRID</h1>
+        <p>Click the <strong>BLUE</strong> tiles as fast as possible.<br>30 Second Speed Run.</p>
+        <button class="btn" onclick="startGame()">START RUN</button>
+    </div>
+
+    <div class="overlay" id="end-screen" style="display:none;">
+        <h1>FINISH</h1>
+        <div style="font-size:4rem; font-weight:900; color:var(--accent); margin-bottom:10px;" id="final-score">0</div>
+        <p id="final-msg">Nice shooting.</p>
+        <button class="btn" onclick="startGame()">AGAIN</button>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(freq, type='sine') {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.frequency.value = freq; osc.type = type;
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+        }
+
+        // GAME LOGIC
+        const grid = document.getElementById('grid');
+        const scoreEl = document.getElementById('score-val');
+        const timeEl = document.getElementById('time-val');
+        const cpsEl = document.getElementById('cps-val');
+        const startScreen = document.getElementById('start-screen');
+        const endScreen = document.getElementById('end-screen');
+
+        let score = 0;
+        let timeLeft = 30;
+        let isPlaying = false;
+        let activeIndex = -1;
+        let timerInt;
+
+        // Create 16 Tiles (4x4)
+        for(let i=0; i<16; i++) {
+            const tile = document.createElement('div');
+            tile.className = 'tile';
+            tile.dataset.index = i;
+            tile.addEventListener('mousedown', () => handleClick(i));
+            grid.appendChild(tile);
+        }
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            endScreen.style.display = 'none';
+            score = 0;
+            timeLeft = 30;
+            scoreEl.innerText = '0';
+            timeEl.innerText = '30';
+            cpsEl.innerText = '0.0';
+            isPlaying = true;
+
+            // Start Timer
+            timerInt = setInterval(() => {
+                timeLeft--;
+                timeEl.innerText = timeLeft;
+                if(timeLeft <= 0) endGame();
+            }, 1000);
+
+            spawnTarget();
+        }
+
+        function spawnTarget() {
+            // Clear current
+            const tiles = document.querySelectorAll('.tile');
+            tiles.forEach(t => t.classList.remove('active'));
+
+            // Pick new random tile (that isn't the current one)
+            let newIndex;
+            do {
+                newIndex = Math.floor(Math.random() * 16);
+            } while (newIndex === activeIndex);
+
+            activeIndex = newIndex;
+            tiles[activeIndex].classList.add('active');
+        }
+
+        function handleClick(index) {
+            if(!isPlaying) return;
+
+            if(index === activeIndex) {
+                // HIT
+                score++;
+                scoreEl.innerText = score;
+                cpsEl.innerText = (score / (30 - timeLeft)).toFixed(1);
+                
+                playSound(600, 'triangle'); // High pitch hit sound
+                
+                // Visual FX
+                const tile = document.querySelectorAll('.tile')[index];
+                tile.classList.remove('active');
+                tile.classList.add('hit');
+                setTimeout(() => tile.classList.remove('hit'), 100);
+
+                spawnTarget();
+            } else {
+                // MISS
+                score = Math.max(0, score - 1); // Penalty
+                scoreEl.innerText = score;
+                playSound(150, 'sawtooth'); // Error sound
+                
+                // Red flash
+                document.body.style.backgroundColor = "#450a0a";
+                setTimeout(() => document.body.style.backgroundColor = "var(--bg)", 50);
+            }
+        }
+
+        function endGame() {
+            isPlaying = false;
+            clearInterval(timerInt);
+            document.querySelectorAll('.tile').forEach(t => t.classList.remove('active'));
+            
+            endScreen.style.display = 'flex';
+            document.getElementById('final-score').innerText = score;
+            
+            // Coach feedback
+            const msg = document.getElementById('final-msg');
+            if(score > 75) msg.innerText = "GODLIKE SPEED. ⚡";
+            else if(score > 60) msg.innerText = "Diamond Hands. Very fast.";
+            else if(score > 45) msg.innerText = "Solid Warmup. Keep pushing.";
+            else msg.innerText = "Wake up those hands! Go again.";
+        }
+    </script>
+</body>
+</html>
