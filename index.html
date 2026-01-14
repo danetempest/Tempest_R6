@@ -11,7 +11,6 @@
             --card: #141416;
             --panel: #1c1c1e;
             --accent: #38bdf8;          /* Electric Blue */
-            --accent-dim: rgba(56, 189, 248, 0.1);
             --accent-glow: rgba(56, 189, 248, 0.4);
             --text-main: #f8fafc;
             --text-dim: #94a3b8;
@@ -76,7 +75,6 @@
         /* --- TRAINER UI --- */
         .lab-container { width: 1000px; max-width: 95vw; display: flex; flex-direction: column; gap: 20px; }
 
-        /* Nav & Daily Bar */
         .top-bar { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
         
         .back-btn {
@@ -89,7 +87,7 @@
         .daily-tracker { flex: 1; max-width: 400px; margin-left: 30px; }
         .daily-label { display: flex; justify-content: space-between; font-size: 0.7rem; color: var(--text-dim); font-weight: 700; margin-bottom: 6px; }
         .progress-track { width: 100%; height: 6px; background: #222; border-radius: 3px; overflow: hidden; }
-        .progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px var(--accent-glow); }
+        .progress-fill { height: 100%; width: 0%; background: var(--accent); transition: width 0.5s; box-shadow: 0 0 10px var(--accent-glow); }
 
         /* Stats Grid */
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 10px; }
@@ -99,7 +97,6 @@
         }
         .stat-label { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 1px; margin-bottom: 4px; text-transform: uppercase; font-weight: 700; }
         .hero-val { font-size: 3rem; font-weight: 900; color: #fff; line-height: 1; }
-        .stat-val { font-size: 1.2rem; font-weight: 800; color: #fff; }
 
         /* Viewport */
         .viewport { 
@@ -164,7 +161,7 @@
         .key-node.active { opacity: 1; border-color: var(--accent); color: #fff; box-shadow: 0 0 15px var(--accent-glow); transform: scale(1.1); }
         .key-node.hit { background: var(--accent); border-color: var(--accent); color: #000; }
 
-        /* Streak & Feedback */
+        /* Feedback */
         .feedback-text { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); font-size: 2rem; font-weight: 900; opacity: 0; transition: 0.2s; z-index: 100; text-shadow: 0 4px 10px rgba(0,0,0,0.8); }
         .feedback-text.show { opacity: 1; }
         
@@ -180,34 +177,19 @@
         .confetti { position: absolute; width: 8px; height: 8px; background: var(--accent); animation: fall 1s linear forwards; z-index: 999; }
         @keyframes fall { to { transform: translateY(300px) rotate(360deg); opacity: 0; } }
 
-        /* Controls */
+        /* Controls UI */
         .controls-wrapper { display: flex; flex-direction: column; gap: 10px; }
         .control-row { display: flex; gap: 10px; width: 100%; }
         .glass-panel { background: var(--panel); border: 1px solid #333; border-radius: 8px; padding: 15px; flex: 1; }
-        
         .input-label { font-size: 0.65rem; color: var(--text-dim); font-weight: 700; display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
-        
-        .select-box { 
-            background: #000; color: #fff; border: 1px solid #333; padding: 10px; 
-            border-radius: 6px; width: 100%; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.85rem;
-        }
-        .select-box:focus { border-color: var(--accent); outline: none; }
-
         .styled-slider { width: 100%; height: 4px; background: #333; border-radius: 2px; -webkit-appearance: none; display: block; margin-top: 10px; }
         .styled-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px; background: var(--accent); border-radius: 50%; cursor: pointer; }
         
-        .btn { 
-            background: #111; border: 1px solid #333; color: var(--text-dim); padding: 12px; 
-            border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.8rem; transition: 0.2s; letter-spacing: 0.5px;
-        }
+        .select-box { background: #000; color: #fff; border: 1px solid #333; padding: 10px; border-radius: 6px; width: 100%; cursor: pointer; font-family: 'Inter', sans-serif; font-size: 0.85rem; }
+        .btn { background: #111; border: 1px solid #333; color: var(--text-dim); padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 0.8rem; transition: 0.2s; letter-spacing: 0.5px; }
         .btn:hover { border-color: var(--accent); color: #fff; }
         .btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
-        /* --- STRAT BOARD --- */
-        #strat-view { padding: 0; background: #0b0b0d; }
-        .strat-header { width: 100%; padding: 20px 40px; background: #111; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
-        .map-frame-container { width: 100%; height: calc(100vh - 80px); background: #000; overflow: hidden; }
-        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
@@ -224,7 +206,7 @@
             <div class="module-card" onclick="goToView('strat-view')">
                 <svg class="icon-lg" viewBox="0 0 24 24"><path d="M20.5 3l-6 2-6-2-5.5 1.83v15.34l6 2 6-2 5.5 1.83v-15.34l-5.5-1.83zm-6 15.34l-6 2v-12.68l6-2v12.68zm6-2v-12.68l-6 2v12.68l6-2z"/></svg>
                 <h2>STRAT BOARD</h2>
-                <p>Interactive strategy command center. Study maps, angles, and callouts.</p>
+                <p>Connect to R6Calls.com for full map blueprints and callouts.</p>
                 <div class="module-btn">OPEN MAPS</div>
             </div>
         </div>
@@ -232,12 +214,8 @@
 
     <div id="trainer-view" class="view-section">
         <div class="lab-container">
-            
             <div class="top-bar">
-                <button class="back-btn" onclick="goToView('dashboard-view')">
-                    <svg class="icon" style="width:16px;height:16px;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-                    DASHBOARD
-                </button>
+                <button class="back-btn" onclick="goToView('dashboard-view')">← DASHBOARD</button>
                 <div class="daily-tracker">
                     <div class="daily-label"><span>DAILY GOAL: S-RANKS</span><span id="daily-text">0 / 50</span></div>
                     <div class="progress-track"><div class="progress-fill" id="daily-fill"></div></div>
@@ -262,20 +240,17 @@
             <div class="viewport" id="viewport">
                 <div class="feedback-text" id="feedback-text">READY</div>
                 <div class="streak-popup" id="streak-pop">+1</div>
-                
                 <div class="crosshair" id="crosshair">
                     <div class="ch-line ch-h"></div>
                     <div class="ch-line ch-v"></div>
                     <div class="ch-dot" id="ch-dot"></div>
                 </div>
-
                 <div class="combo-track" id="keys-display">
                     <div id="k0" class="key-node">A</div>
                     <div id="k1" class="key-node">D</div>
                     <div id="k2" class="key-node">E</div>
                     <div id="k3" class="key-node">Q</div>
                 </div>
-
                 <div class="world-container" id="world">
                     <div class="hallway">
                         <div class="floor"></div><div class="wall wall-left"></div><div class="wall wall-right"></div>
@@ -287,7 +262,6 @@
                         </div>
                     </div>
                 </div>
-
                 <div class="weapon-container">
                     <div class="weapon-model" id="weapon">
                         <div class="gun-body"><div class="gun-optic"></div></div>
@@ -319,7 +293,6 @@
                         <input type="range" class="styled-slider" min="60" max="200" value="140" oninput="setDoorWidth(this.value)">
                     </div>
                 </div>
-
                 <div class="control-row">
                     <div class="glass-panel" style="flex:2">
                         <div style="display:flex; justify-content:space-between;">
@@ -339,32 +312,38 @@
     </div>
 
     <div id="strat-view" class="view-section">
-        <div class="strat-header">
-            <button class="back-btn" onclick="goToView('dashboard-view')">
-                <svg class="icon" style="width:16px;height:16px;" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-                DASHBOARD
-            </button>
-            <div style="display:flex; gap:15px; align-items:center;">
-                <span class="input-label" style="font-size:0.9rem; color:#fff;">STRATEGY CENTER</span>
-                <select class="select-box" style="width:auto;" onchange="loadMap(this.value)">
-                    <option value="oregon">OREGON</option>
-                    <option value="clubhouse">CLUBHOUSE</option>
-                    <option value="coastline">COASTLINE</option>
-                    <option value="bank">BANK</option>
-                    <option value="chalet">CHALET</option>
-                    <option value="kafe">KAFE</option>
-                    <option value="consulate">CONSULATE</option>
-                    <option value="border">BORDER</option>
-                </select>
-            </div>
+        <div class="top-bar">
+            <button class="back-btn" onclick="goToView('dashboard-view')">← DASHBOARD</button>
+            <div style="font-weight:900; color:#fff;">STRATEGY LINK</div>
         </div>
-        <div class="map-frame-container">
-            <iframe id="r6-frame" src="" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+
+        <div class="module-card" style="width: 100%; height: 500px; justify-content: center; gap: 20px; cursor: default; border-color: #333; transform: none;">
+            <svg class="icon-lg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+            <h2>CONNECT TO R6CALLS.COM</h2>
+            <p style="max-width: 500px;">
+                Securely launch the tactical board in a dedicated window.<br>
+                Select a map below to begin.
+            </p>
+            
+            <div style="display:flex; gap:10px; width: 100%; max-width: 500px; justify-content: center;">
+                <select class="select-box" id="r6-map-select" style="width: 200px;">
+                    <option value="oregon">Oregon</option>
+                    <option value="clubhouse">Clubhouse</option>
+                    <option value="coastline">Coastline</option>
+                    <option value="consulate">Consulate</option>
+                    <option value="bank">Bank</option>
+                    <option value="chalet">Chalet</option>
+                    <option value="kafe">Kafe</option>
+                </select>
+                <button class="module-btn" style="width: 150px;" onclick="launchR6Calls()">LAUNCH MAP</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // --- CORE VARIABLES ---
+        // ==========================================
+        // MODULE 1: PEEK TRAINER LOGIC
+        // ==========================================
         const SEQS = { 'ADEQ': ['a','d','e','q'], 'DAQE': ['d','a','q','e'] };
         let currentSide = 'ADEQ';
         let idx = 0;
@@ -373,10 +352,10 @@
         let attempts = 0;
         let sRanks = 0;
         let bpm = 120;
-        let difficultyMult = 1.0; // 1.0 = Easy, 0.7 = Pro
-        let mode = 'full'; // full, intel, kill, freeplay
+        let difficultyMult = 1.0;
+        let mode = 'full';
         
-        // --- ANIMATION ENGINE ---
+        // Physics
         let cx=0, tx=0, cLean=0, tLean=0;
         const LERP_SPEED = 0.4;
 
@@ -389,62 +368,39 @@
         }
         loop();
 
-        // --- INPUT LOGIC ---
+        // Input
         window.addEventListener('keydown', e => {
             if(!document.getElementById('trainer-view').classList.contains('active')) return;
-            
             const k = e.key.toLowerCase();
             if(k === ' ') { e.preventDefault(); swapSide(); return; }
-
             const seq = SEQS[currentSide];
             if(k === seq[idx]) {
                 if(idx===0) { startTime = performance.now(); document.getElementById('k0').classList.add('active'); }
                 document.getElementById('k'+idx).classList.add('hit');
-                
-                // Movement
                 if(currentSide === 'ADEQ') {
-                    if(idx===0) tx = 80;
-                    if(idx===1) tx = -60;
-                    if(idx===2) { tx = -80; tLean = 1; }
-                    if(idx===3) { tx = -40; tLean = -0.2; }
+                    if(idx===0) tx = 80; if(idx===1) tx = -60; if(idx===2) { tx = -80; tLean = 1; } if(idx===3) { tx = -40; tLean = -0.2; }
                 } else {
-                    if(idx===0) tx = -80;
-                    if(idx===1) tx = 60;
-                    if(idx===2) { tx = 80; tLean = -1; }
-                    if(idx===3) { tx = 40; tLean = 0.2; }
+                    if(idx===0) tx = -80; if(idx===1) tx = 60; if(idx===2) { tx = 80; tLean = -1; } if(idx===3) { tx = 40; tLean = 0.2; }
                 }
-
-                idx++;
-                if(idx===4) finish();
-            } else if(['a','d','e','q'].includes(k)) {
-                if(mode !== 'freeplay') fail();
-            }
+                idx++; if(idx===4) finish();
+            } else if(['a','d','e','q'].includes(k)) { if(mode !== 'freeplay') fail(); }
         });
 
+        // Game Logic
         function finish() {
             const total = performance.now() - startTime;
-            // TARGET CALCULATION: BPM Time * 3 Beats * Difficulty Multiplier
             const target = (60000/bpm) * 3 * difficultyMult; 
-            
             document.getElementById('weapon').style.transform += ` translateY(20px)`; 
             document.getElementById('enemy').classList.add('dead');
-            
             let rank = 'D';
-            
-            if(mode === 'freeplay') {
-                rank = 'PRACTICE';
-            } else {
-                if(total < target * 0.85) rank = 'S';
-                else if(total < target) rank = 'A';
-            }
-
+            if(mode === 'freeplay') rank = 'PRACTICE';
+            else { if(total < target * 0.85) rank = 'S'; else if(total < target) rank = 'A'; }
             updateStats(total, rank);
             setTimeout(resetRound, 100);
         }
 
         function fail() {
-            streak = 0;
-            updateStats(0, 'FAIL');
+            streak = 0; updateStats(0, 'FAIL');
             document.getElementById('viewport').style.boxShadow = "inset 0 0 50px rgba(239, 68, 68, 0.5)";
             setTimeout(() => document.getElementById('viewport').style.boxShadow = "none", 200);
             resetRound();
@@ -461,29 +417,17 @@
             const offset = (Math.random() * 60) - 30;
             const base = currentSide === 'ADEQ' ? 'calc(50% + 70px)' : 'calc(50% - 110px)';
             const el = document.getElementById('enemy');
-            el.style.left = base;
-            el.style.transform = `translateX(${offset}px)`;
+            el.style.left = base; el.style.transform = `translateX(${offset}px)`;
         }
 
-        // --- STATE MANAGEMENT ---
+        // Stats
         function updateStats(ms, rank) {
             if(rank !== 'FAIL' && rank !== 'PRACTICE') attempts++;
-            
-            if(rank === 'S') {
-                streak++;
-                sRanks++;
-                triggerPopup("+" + streak);
-                if(streak > 0 && streak % 10 === 0) fireConfetti();
-            } else if (rank === 'FAIL') {
-                streak = 0;
-            }
-            
-            // UI Updates
+            if(rank === 'S') { streak++; sRanks++; triggerPopup("+" + streak); if(streak > 0 && streak % 10 === 0) fireConfetti(); } 
+            else if (rank === 'FAIL') { streak = 0; }
             if(ms > 0) document.getElementById('time-display').innerHTML = Math.round(ms) + '<span style="font-size:1.5rem; color:#666">ms</span>';
             document.getElementById('streak-disp').innerText = streak;
             document.getElementById('acc-disp').innerText = attempts > 0 ? Math.round((sRanks/attempts)*100) + "%" : "0%";
-            
-            // Daily Progress
             document.getElementById('daily-text').innerText = sRanks + " / 50";
             document.getElementById('daily-fill').style.width = Math.min(100, (sRanks/50)*100) + "%";
         }
@@ -496,45 +440,38 @@
             resetRound();
         }
 
-        // --- SETTINGS ---
+        // Settings
         function setBPM(val) { bpm = val; document.getElementById('bpm-val').innerText = val; }
-        
-        function setDoorWidth(val) {
-            document.getElementById('doorframe').style.width = val + 'px';
-            document.getElementById('doorframe').style.marginLeft = -(val/2) + 'px';
-        }
-        
+        function setDoorWidth(val) { document.getElementById('doorframe').style.width = val + 'px'; document.getElementById('doorframe').style.marginLeft = -(val/2) + 'px'; }
         function setDifficulty(val) { difficultyMult = parseFloat(val); }
         function setMode(val) { mode = val; resetRound(); }
-        
-        // --- VISUALS ---
-        function triggerPopup(text) {
-            const el = document.getElementById('streak-pop');
-            el.innerText = text; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
-        }
-        function fireConfetti() {
-            triggerPopup("CONFIDENCE!");
-            for(let i=0; i<20; i++) {
-                const c = document.createElement('div');
-                c.className = 'confetti';
-                c.style.left = Math.random() * 100 + "%";
-                document.getElementById('viewport').appendChild(c);
-                setTimeout(() => c.remove(), 1000);
-            }
+        function triggerPopup(text) { const el = document.getElementById('streak-pop'); el.innerText = text; el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); }
+        function fireConfetti() { triggerPopup("CONFIDENCE!"); for(let i=0; i<20; i++) { const c = document.createElement('div'); c.className = 'confetti'; c.style.left = Math.random() * 100 + "%"; document.getElementById('viewport').appendChild(c); setTimeout(() => c.remove(), 1000); } }
+
+        // ==========================================
+        // MODULE 2: R6CALLS CONNECTION LOGIC
+        // ==========================================
+        function launchR6Calls() {
+            const map = document.getElementById('r6-map-select').value;
+            const links = {
+                'oregon': 'https://r6calls.com/maps/oregon',
+                'clubhouse': 'https://r6calls.com/maps/clubhouse',
+                'coastline': 'https://r6calls.com/maps/coastline',
+                'bank': 'https://r6calls.com/maps/bank',
+                'chalet': 'https://r6calls.com/maps/chalet',
+                'kafe': 'https://r6calls.com/maps/kafe-dostoyevsky',
+                'consulate': 'https://r6calls.com/maps/consulate'
+            };
+            window.open(links[map], 'R6StratBoard', 'width=1200,height=800,menubar=no,toolbar=no');
         }
 
-        // --- NAVIGATION ---
+        // Navigation
         function goToView(id) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
-        
-        // --- MAPS ---
-        const MAP_LINKS = { 'oregon': 'https://r6calls.com/maps/oregon', 'clubhouse': 'https://r6calls.com/maps/clubhouse', 'coastline': 'https://r6calls.com/maps/coastline' };
-        function loadMap(map) { document.getElementById('r6-frame').src = MAP_LINKS[map] || MAP_LINKS['oregon']; }
 
         // Init
-        loadMap('oregon');
         randomizeTarget();
     </script>
 </body>
