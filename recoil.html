@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>R6 Recoil Lab</title>
     <style>
         :root {
@@ -13,7 +14,7 @@
             margin: 0;
             background: var(--bg);
             color: var(--text);
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', system-ui, sans-serif;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -29,6 +30,7 @@
             background: #27272a; color: #a1a1aa; text-decoration: none;
             padding: 10px 20px; border-radius: 6px; border: 1px solid #3f3f46;
             font-weight: 700; font-size: 0.8rem; transition: 0.2s;
+            z-index: 100;
         }
         .home-btn:hover { border-color: #fff; color: #fff; }
 
@@ -39,6 +41,7 @@
             border: 2px solid #333;
             border-radius: 12px;
             cursor: none; /* Hide cursor during gameplay */
+            background: radial-gradient(circle at center, #18181b 0%, #000 100%);
         }
 
         /* HUD OVERLAY */
@@ -47,16 +50,18 @@
             top: 20px; width: 100%;
             text-align: center;
             pointer-events: none;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
         }
         .stat-box {
-            display: inline-block;
             background: rgba(0,0,0,0.8);
             padding: 10px 20px;
             border-radius: 8px;
             border: 1px solid #333;
-            margin: 0 10px;
+            min-width: 100px;
         }
-        .label { font-size: 0.8rem; color: #a1a1aa; text-transform: uppercase; }
+        .label { font-size: 0.8rem; color: #a1a1aa; text-transform: uppercase; margin-bottom: 5px; }
         .value { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
 
         /* START SCREEN */
@@ -69,14 +74,16 @@
             align-items: center;
             justify-content: center;
             z-index: 10;
+            border-radius: 12px;
         }
-        h1 { font-size: 3rem; margin: 0; text-transform: uppercase; letter-spacing: 2px; }
-        p { color: #a1a1aa; max-width: 400px; text-align: center; line-height: 1.6; }
+        h1 { font-size: 3rem; margin: 0; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); }
+        p { color: #a1a1aa; max-width: 400px; text-align: center; line-height: 1.6; margin-bottom: 30px; }
         .btn {
             background: var(--accent); color: #fff; border: none;
             padding: 15px 40px; font-size: 1.2rem; font-weight: 800;
-            cursor: pointer; border-radius: 6px; margin-top: 20px;
+            cursor: pointer; border-radius: 6px; 
             transition: 0.2s;
+            border: 1px solid #b91c1c;
         }
         .btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent); }
 
@@ -91,7 +98,7 @@
         
         <div id="hud">
             <div class="stat-box">
-                <div class="label">Control Time</div>
+                <div class="label">Time</div>
                 <div class="value" id="score-disp">0.0s</div>
             </div>
             <div class="stat-box">
@@ -102,7 +109,7 @@
 
         <div id="start-screen">
             <h1>Recoil Lab</h1>
-            <p>The target will pull UP. Pull your mouse DOWN to keep it centered. It gets harder the longer you hold.</p>
+            <p><strong>INSTRUCTIONS:</strong><br>The red dot will pull UP automatically.<br>Pull your mouse DOWN to keep it in the circle.<br>It gets harder every second.</p>
             <button class="btn" onclick="startGame()">START SPRAY</button>
         </div>
     </div>
@@ -116,7 +123,6 @@
 
         // Game State
         let isRunning = false;
-        let score = 0;
         let startTime = 0;
         let animationFrame;
         
@@ -124,13 +130,13 @@
         let ballX = 400; // Center Width
         let ballY = 300; // Center Height
         let recoilForce = 0.5; // Upward force
-        let jitter = 0; // Horizontal shake
+        let difficultyMultiplier = 0.005; // How fast recoil increases
 
         // Config
-        const ZONE_RADIUS = 60; // The safe circle size
+        const ZONE_RADIUS = 60; // Safe circle size
         const BALL_RADIUS = 8; 
 
-        // Mouse Tracker
+        // Cross-Browser Pointer Lock
         canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
 
         function startGame() {
@@ -140,20 +146,30 @@
             // Reset Values
             ballX = 400;
             ballY = 300;
-            recoilForce = 1.5; // Starting recoil (SMG-11 style)
-            score = 0;
+            recoilForce = 1.2; // Start with decent kick (Like MP7)
             startTime = Date.now();
             isRunning = true;
 
             // Start Loops
             document.addEventListener("mousemove", handleMouse, false);
+            // Handle pointer lock errors/exit
+            document.addEventListener("pointerlockchange", lockChangeAlert, false);
+            
             gameLoop();
+        }
+
+        function lockChangeAlert() {
+            if (document.pointerLockElement === canvas) {
+                // Locked
+            } else {
+                // User pressed ESC or Alt-Tabbed
+                if(isRunning) gameOver(); 
+            }
         }
 
         function handleMouse(e) {
             if (!isRunning) return;
             // Counter-act the recoil with mouse movement
-            // e.movementY is positive when moving down
             ballY += e.movementY; 
             ballX += e.movementX;
         }
@@ -163,14 +179,14 @@
 
             // 1. UPDATE PHYSICS
             // Increase recoil force slightly over time (Fatigue)
-            recoilForce += 0.005; 
+            recoilForce += difficultyMultiplier; 
             
-            // Add horizontal jitter (Random shake like aiming)
-            let shake = (Math.random() - 0.5) * (recoilForce * 2);
+            // Add horizontal jitter (Random shake left/right)
+            let jitter = (Math.random() - 0.5) * (recoilForce * 1.5);
             
             // Apply Forces (Ball moves UP naturally)
             ballY -= recoilForce; 
-            ballX += shake;
+            ballX += jitter;
 
             // 2. CHECK BOUNDARIES (Did you lose control?)
             // Distance from center (400, 300)
@@ -194,18 +210,18 @@
 
         function draw() {
             // Clear Screen
-            ctx.fillStyle = "#18181b"; // Dark Grey
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous frame
 
             // Draw Safe Zone (Center)
             ctx.beginPath();
             ctx.arc(400, 300, ZONE_RADIUS, 0, Math.PI * 2);
-            ctx.strokeStyle = "#333";
+            ctx.strokeStyle = "#444";
             ctx.lineWidth = 4;
             ctx.stroke();
             
             // Draw Crosshair Lines
             ctx.strokeStyle = "rgba(255,255,255,0.1)";
+            ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(0, 300); ctx.lineTo(800, 300);
             ctx.moveTo(400, 0); ctx.lineTo(400, 600);
@@ -217,7 +233,7 @@
             ctx.fillStyle = "#ef4444"; // Red Dot
             ctx.fill();
             
-            // Draw "Tension" Line (Visualizes force)
+            // Draw "Tension" Line (Visualizes the pull)
             ctx.beginPath();
             ctx.moveTo(400, 300);
             ctx.lineTo(ballX, ballY);
@@ -235,8 +251,7 @@
             startScreen.style.display = 'flex';
             startScreen.innerHTML = `
                 <h1 style="color:#ef4444">CONTROL LOST</h1>
-                <p>You held the spray for <strong>${scoreDisp.innerText}</strong>.</p>
-                <p>Recoil reached <strong>${strengthDisp.innerText}</strong> strength.</p>
+                <p>You controlled the recoil for <br><span style="font-size:2rem; color:white;">${scoreDisp.innerText}</span></p>
                 <button class="btn" onclick="startGame()">RETRY</button>
             `;
         }
