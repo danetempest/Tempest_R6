@@ -3,309 +3,285 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>R6 Pixel Peek - Live Fire</title>
+    <title>R6 Pixel Peek - Adaptive Coach</title>
     <style>
         /* --- THEME SETUP --- */
         :root {
-            --bg-color: #1e1e24;
-            --wall-color: #0f0f12;
-            --accent-color: #4cc9f0;
-            
-            /* UPDATED: "Realistic" Camo Colors */
-            /* No more bright red. Now it's SWAT Grey/Tan */
-            --enemy-head: #8a8d91; /* Dull Helmet Grey */
-            --enemy-body: #2d3035; /* Dark Tactical Uniform */
+            --bg-color: #050505;
+            --panel-color: #141416;
+            --accent-color: #38bdf8;
+            --text-dim: #94a3b8;
+            --enemy-head: #8a8d91;
+            --enemy-body: #2d3035;
         }
 
         body {
             background-color: var(--bg-color);
             color: #fff;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Inter', system-ui, sans-serif;
             margin: 0;
             overflow: hidden;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            flex-direction: row; /* Layout: Side-by-side */
             height: 100vh;
             user-select: none;
         }
 
-        /* --- THE GAME SCENE --- */
+        /* --- LEFT SIDE: THE GAME --- */
+        #game-wrapper {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid #333;
+            position: relative;
+            cursor: crosshair;
+        }
+
         #game-container {
             position: relative;
             width: 800px;
             height: 500px;
-            /* Darker background to simulate a dimly lit map */
-            background: radial-gradient(circle at center, #23232a 0%, #050505 100%);
+            background: radial-gradient(circle at center, #23232a 0%, #000 100%);
             border: 2px solid #333;
             border-radius: 8px;
             overflow: hidden;
-            cursor: crosshair;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
         }
 
-        /* The Cover (Right Side) */
-        .wall {
-            position: absolute;
-            right: 0;
-            top: 0;
-            width: 400px; 
-            height: 100%;
-            background: #111;
-            border-left: 4px solid #000;
-            z-index: 20; 
-        }
-
-        /* The Enemy Character */
-        #enemy {
-            position: absolute;
-            right: 10px; 
-            bottom: 140px;
-            width: 60px;
-            height: 140px;
-            z-index: 10;
-            will-change: transform;
-        }
-
-        /* Enemy Visuals - UPDATED FOR REALISM */
-        .head {
-            width: 30px; height: 30px; 
-            background-color: var(--enemy-head);
-            border-radius: 50%;
-            margin: 0 auto; 
-            /* Subtle rim light so you can BARELY see him against the black wall */
-            border: 1px solid #555; 
-            position: relative;
-            top: 5px;
-            z-index: 12;
-        }
-        .body {
-            width: 60px; height: 100px;
-            background-color: var(--enemy-body);
-            border-radius: 8px;
-            margin-top: 5px;
-            /* Very subtle shadow to separate from background */
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
-        }
-        .gun {
-            width: 50px; height: 10px; background: #000;
-            position: absolute; top: 50px; left: -10px;
-        }
-
-        /* --- ANIMATION CLASSES --- */
+        /* Game Assets (Wall/Enemy) */
+        .wall { position: absolute; right: 0; top: 0; width: 400px; height: 100%; background: #111; border-left: 4px solid #000; z-index: 20; }
         
-        /* 1. WIDE SWING (Easy) */
-        .swing-wide {
-            transition: transform 0.3s cubic-bezier(0.1, 0.7, 1.0, 0.1); 
-            transform: translateX(-450px) !important; 
+        #enemy { position: absolute; right: 10px; bottom: 140px; width: 60px; height: 140px; z-index: 10; will-change: transform; }
+        .head { width: 30px; height: 30px; background-color: var(--enemy-head); border-radius: 50%; margin: 0 auto; border: 1px solid #555; position: relative; top: 5px; z-index: 12; }
+        .body { width: 60px; height: 100px; background-color: var(--enemy-body); border-radius: 8px; margin-top: 5px; box-shadow: inset 0 0 10px rgba(0,0,0,0.8); }
+        .gun { width: 50px; height: 10px; background: #000; position: absolute; top: 50px; left: -10px; }
+
+        /* Animations */
+        .swing-anim { transition: transform 0.2s cubic-bezier(0.1, 0.7, 1.0, 0.1); transform: translateX(-410px) !important; }
+        .enemy-hit { transform: translateX(-410px) rotate(-90deg) translateY(100px) !important; transition: transform 0.3s ease-in !important; filter: grayscale(100%); opacity: 0.5; }
+
+        /* Game UI Overlays */
+        #feedback-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; font-weight: 900; z-index: 100; pointer-events: none; text-shadow: 0 0 30px #000; display: none; }
+        #start-msg { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); font-size: 1.2rem; color: #aaa; z-index: 50; pointer-events: none; background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 20px; }
+
+        /* --- RIGHT SIDE: COACHING PANEL --- */
+        #coach-panel {
+            flex: 1;
+            background: var(--panel-color);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
         }
 
-        /* 2. STANDARD PEEK (Medium) */
-        .swing-normal {
-            transition: transform 0.2s cubic-bezier(0.1, 0.7, 1.0, 0.1); 
-            transform: translateX(-410px) !important; 
+        h2 { margin: 0; font-size: 1.5rem; color: var(--accent-color); text-transform: uppercase; letter-spacing: 1px; }
+        h3 { margin: 0; font-size: 0.9rem; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; }
+
+        .stat-box {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px; border-radius: 8px;
+            text-align: center;
+        }
+        .big-number { font-size: 2.5rem; font-weight: 800; color: #fff; }
+        .unit { font-size: 1rem; color: var(--text-dim); }
+
+        .coach-advice {
+            background: rgba(56, 189, 248, 0.1);
+            border-left: 4px solid var(--accent-color);
+            padding: 15px; border-radius: 4px;
+            font-size: 0.95rem; line-height: 1.5; color: #e0f2fe;
         }
 
-        /* 3. HEAD GLITCH (Hard) */
-        .swing-tight {
-            transition: transform 0.15s cubic-bezier(0.0, 1.2, 0.8, 1.0); 
-            transform: translateX(-395px) !important; 
-        }
+        /* Mini Graph */
+        .bar-chart { display: flex; align-items: flex-end; gap: 4px; height: 100px; width: 100%; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .bar { flex: 1; background: #333; transition: height 0.3s, background 0.3s; border-radius: 2px 2px 0 0; position: relative; }
+        .bar:hover { background: #fff !important; }
 
-        /* Death Animation */
-        .enemy-dead {
-            transform: translateX(-400px) rotate(-90deg) translateY(100px) !important;
-            transition: transform 0.3s ease-in !important;
-            filter: grayscale(100%);
-            opacity: 0.5;
+        .reset-btn {
+            background: transparent; border: 1px solid var(--text-dim); color: var(--text-dim);
+            padding: 10px; cursor: pointer; margin-top: auto; border-radius: 4px;
         }
+        .reset-btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
 
-        /* UI Elements */
-        .overlay-msg {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 3rem; font-weight: 900; 
-            z-index: 100; pointer-events: none;
-            text-shadow: 0 0 20px #000;
-            opacity: 0; transition: opacity 0.1s;
-        }
-        #death-screen { background: rgba(100, 0, 0, 0.3); color: #fff; }
-        
-        #ui-layer { 
-            position: absolute; top: 20px; left: 20px; 
-            font-size: 1rem; z-index: 50; display: flex; gap: 20px; align-items: center;
-        }
-
-        select {
-            background: #000; color: var(--accent-color); border: 1px solid var(--accent-color);
-            padding: 5px 10px; font-weight: bold; border-radius: 4px; cursor: pointer;
-        }
-
-        #start-msg {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2rem; font-weight: bold; color: var(--accent-color);
-            z-index: 50; pointer-events: none;
-            background: rgba(0,0,0,0.8);
-            padding: 20px; border-radius: 10px;
-        }
     </style>
 </head>
-<body onmousedown="handleUserClick()">
+<body>
 
-    <div id="game-container">
-        <div id="ui-layer">
-            <div>
-                DIFFICULTY: 
-                <select id="diff-select" onchange="resetGame()">
-                    <option value="easy">COPPER (Wide)</option>
-                    <option value="medium" selected>PLATINUM (Standard)</option>
-                    <option value="hard">CHAMPION (Tight/Fast)</option>
-                </select>
-            </div>
-            <div>STATUS: <span id="status-disp">IDLE</span></div>
-            <div>LAST: <span id="time-disp" style="color:var(--accent-color)">0 ms</span></div>
+    <div id="game-wrapper" onmousedown="handleUserClick()">
+        <div id="game-container">
+            <div id="feedback-msg">PERFECT</div>
+            <div id="start-msg">CLICK ANYWHERE TO START</div>
+            <div id="enemy"><div class="head"></div><div class="body"><div class="gun"></div></div></div>
+            <div class="wall"></div>
         </div>
-
-        <div id="start-msg">CLICK ANYWHERE TO START</div>
-        <div id="death-screen" class="overlay-msg">YOU DIED</div>
-
-        <div id="enemy">
-            <div class="head"></div>
-            <div class="body"><div class="gun"></div></div>
-        </div>
-
-        <div class="wall"></div>
+        <a href="index.html" style="margin-top:20px; color: #555; text-decoration: none;">← Back to Dashboard</a>
     </div>
 
-    <div style="margin-top: 20px; text-align: center; color: #888;">
-        <p><strong>Instructions:</strong> Select difficulty. Click screen to start. Click FAST when he peeks.</p>
-        <a href="index.html" style="color: var(--accent-color); text-decoration: none;">← Back to Dashboard</a>
+    <div id="coach-panel">
+        <h2>Performance Lab</h2>
+        
+        <div class="stat-box">
+            <h3>Session Average</h3>
+            <div class="big-number" id="avg-disp">--</div>
+            <span class="unit">MILLISECONDS</span>
+        </div>
+
+        <div>
+            <h3>Recent History (Last 10)</h3>
+            <div class="bar-chart" id="chart-container">
+                </div>
+        </div>
+
+        <div>
+            <h3>Adaptive Coaching</h3>
+            <div class="coach-advice" id="coach-text">
+                Complete at least 3 attempts to unlock personalized coaching data.
+            </div>
+        </div>
+
+        <button class="reset-btn" onclick="resetStats()">RESET DATA</button>
     </div>
 
     <script>
+        // --- GAME VARIABLES ---
         const enemyEl = document.getElementById('enemy');
-        const deathScreen = document.getElementById('death-screen');
+        const feedbackMsg = document.getElementById('feedback-msg');
         const startMsg = document.getElementById('start-msg');
-        const timeDisp = document.getElementById('time-disp');
-        const statusDisp = document.getElementById('status-disp');
-        const diffSelect = document.getElementById('diff-select');
+        
+        // --- STAT VARIABLES ---
+        const avgDisp = document.getElementById('avg-disp');
+        const chartContainer = document.getElementById('chart-container');
+        const coachText = document.getElementById('coach-text');
 
         let gameState = "IDLE"; 
         let swingStartTime = 0;
-        let killTimer = null;
         let swingTimeout = null;
+        let history = []; // Stores last 10 scores
 
+        // --- GAME LOGIC ---
         function handleUserClick() {
-            if (event.target.tagName === 'SELECT') return;
+            // Ignore clicks on the right panel
+            if (event.target.closest('#coach-panel')) return;
 
             if (gameState === "IDLE" || gameState === "ENDED") {
                 startRound();
                 return;
             }
-
             if (gameState === "HOLDING") {
-                failRound("PREFIRE");
+                failRound();
                 return;
             }
-
             if (gameState === "SWINGING") {
                 const reaction = Date.now() - swingStartTime;
-                winRound(reaction);
+                processScore(reaction);
             }
-        }
-
-        function resetGame() {
-            gameState = "IDLE";
-            startMsg.style.display = "block";
-            startMsg.innerText = "CLICK TO START";
         }
 
         function startRound() {
             gameState = "HOLDING";
-            clearTimeout(killTimer);
             clearTimeout(swingTimeout);
 
-            // UI Reset
-            deathScreen.style.opacity = "0";
+            feedbackMsg.style.display = "none";
             startMsg.style.display = "none";
-            statusDisp.innerText = "HOLDING...";
-            statusDisp.style.color = "#fff";
-            timeDisp.innerText = "0 ms";
 
             // Reset Enemy
             enemyEl.className = "";
             void enemyEl.offsetWidth; 
 
             const randomTime = Math.random() * 3000 + 1500;
-            
             swingTimeout = setTimeout(() => {
-                if(gameState === "HOLDING") {
-                    triggerSwing();
-                }
+                if(gameState === "HOLDING") triggerSwing();
             }, randomTime);
         }
 
         function triggerSwing() {
             gameState = "SWINGING";
             swingStartTime = Date.now();
-            
-            const diff = diffSelect.value;
-            let killTime = 300;
-            let animClass = "swing-normal";
-
-            if (diff === 'easy') {
-                killTime = 450;
-                animClass = "swing-wide";
-            } else if (diff === 'medium') {
-                killTime = 280;
-                animClass = "swing-normal";
-            } else if (diff === 'hard') {
-                killTime = 190;
-                animClass = "swing-tight";
-            }
-
-            enemyEl.classList.add(animClass);
-
-            killTimer = setTimeout(() => {
-                if(gameState === "SWINGING") {
-                    failRound("TOO_SLOW");
-                }
-            }, killTime);
+            enemyEl.classList.add("swing-anim");
         }
 
-        function winRound(ms) {
+        function failRound() {
             gameState = "ENDED";
-            clearTimeout(killTimer);
-            statusDisp.innerText = "HEADSHOT!";
-            statusDisp.style.color = "#2ecc71";
-            timeDisp.innerText = ms + " ms";
-            enemyEl.classList.add("enemy-dead");
-            setTimeout(() => {
-                startMsg.innerText = "CLICK TO GO AGAIN";
-                startMsg.style.display = "block";
-            }, 500);
+            feedbackMsg.innerText = "TOO EARLY";
+            feedbackMsg.style.color = "orange";
+            feedbackMsg.style.display = "block";
+            enemyEl.classList.add("swing-anim");
+            setTimeout(() => { startMsg.innerText = "CLICK TO RETRY"; startMsg.style.display = "block"; }, 500);
         }
 
-        function failRound(reason) {
+        // --- TRACKER & COACHING LOGIC ---
+
+        function processScore(ms) {
             gameState = "ENDED";
-            clearTimeout(killTimer);
             
-            if (reason === "TOO_SLOW") {
-                statusDisp.innerText = "YOU DIED";
-                statusDisp.style.color = "#e74c3c";
-                deathScreen.style.opacity = "1";
-            } else if (reason === "PREFIRE") {
-                statusDisp.innerText = "PRE-FIRE!";
-                statusDisp.style.color = "orange";
-                enemyEl.classList.add("swing-wide");
+            // 1. Add to History
+            history.push(ms);
+            if (history.length > 10) history.shift(); // Keep only last 10
+
+            // 2. Update Stats
+            updateDashboard();
+
+            // 3. Game Visuals
+            let color = ms < 250 ? "#38bdf8" : (ms < 350 ? "#2ecc71" : "#e74c3c");
+            feedbackMsg.innerText = ms + " ms";
+            feedbackMsg.style.color = color;
+            feedbackMsg.style.display = "block";
+            enemyEl.classList.add("enemy-hit");
+            setTimeout(() => { startMsg.innerText = "CLICK TO GO AGAIN"; startMsg.style.display = "block"; }, 500);
+        }
+
+        function updateDashboard() {
+            // Calculate Average
+            const sum = history.reduce((a, b) => a + b, 0);
+            const avg = Math.round(sum / history.length);
+            avgDisp.innerText = avg;
+
+            // Render Chart
+            chartContainer.innerHTML = "";
+            history.forEach(score => {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                // Scale bar height: 500ms = 0% height, 150ms = 100% height
+                let height = Math.max(5, 100 - ((score - 150) / 3.5)); 
+                let bColor = score < 250 ? "#38bdf8" : (score < 350 ? "#2ecc71" : "#e74c3c");
+                
+                bar.style.height = height + "%";
+                bar.style.background = bColor;
+                bar.title = score + "ms"; // Tooltip
+                chartContainer.appendChild(bar);
+            });
+
+            // Generate Coaching Advice
+            updateCoach(avg);
+        }
+
+        function updateCoach(avg) {
+            if (history.length < 3) return; // Need data first
+
+            let advice = "";
+            
+            if (avg < 210) {
+                advice = "<strong>STATUS: GODLIKE</strong><br>You are reacting faster than 99% of players. <br><br><strong>R6 STRATEGY:</strong> You can hold 'Pixel Peeks' and tight angles comfortably. You will beat the server's 'Peeker's Advantage'. Play Anchor roles.";
+            } else if (avg < 260) {
+                advice = "<strong>STATUS: COMPETITIVE</strong><br>Solid reaction time. You will win most fair gunfights.<br><br><strong>HOW TO IMPROVE:</strong> Try 'Pre-Tensioning'. Rest your finger heavier on the mouse button, right at the clicking point, to remove travel distance.";
+            } else if (avg < 350) {
+                advice = "<strong>STATUS: AVERAGE</strong><br>You are in the normal human range (250-300ms).<br><br><strong>R6 STRATEGY:</strong> Do NOT hold static angles. Enemies swinging you will see you before you react (Peeker's Advantage). You must 'Jiggle Peek' or swing them to win.";
+            } else {
+                advice = "<strong>STATUS: DELAYED</strong><br>Your hardware might be holding you back.<br><br><strong>CHECKLIST:</strong><br>1. Is your monitor on 'Game Mode'?<br>2. Are you using a wireless mouse?<br>3. Try focusing on the CENTER of the screen, not the edge.";
             }
 
-            setTimeout(() => {
-                startMsg.innerText = "CLICK TO RETRY";
-                startMsg.style.display = "block";
-            }, 500);
+            coachText.innerHTML = advice;
+        }
+
+        function resetStats() {
+            history = [];
+            avgDisp.innerText = "--";
+            chartContainer.innerHTML = "";
+            coachText.innerHTML = "Data cleared. Complete 3 attempts for new analysis.";
         }
     </script>
 </body>
