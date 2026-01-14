@@ -3,15 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>R6 Neuro-Trainer + Focus Audio</title>
+    <title>R6 Neuro-Trainer</title>
     <style>
         :root {
             --bg-color: #09090b;
             --panel-color: #18181b;
-            --accent-color: #8b5cf6; /* Violet */
-            --success: #22c55e;
-            --danger: #ef4444;
-            --warning: #eab308;
+            --accent-color: #8b5cf6;
             --enemy-head: #71717a;
             --enemy-body: #27272a;
         }
@@ -27,7 +24,28 @@
             user-select: none;
         }
 
-        /* --- GAME AREA (LEFT) --- */
+        /* --- NAVIGATION BUTTON --- */
+        .home-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000; /* On top of everything */
+            background: #27272a;
+            color: #a1a1aa;
+            text-decoration: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: 1px solid #3f3f46;
+            font-weight: 700;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+        .home-btn:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
+        /* --- GAME AREA --- */
         #game-wrapper {
             flex: 2;
             display: flex;
@@ -68,7 +86,7 @@
         #feedback-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 5rem; font-weight: 900; z-index: 100; text-shadow: 0 0 30px #000; display: none; }
         #start-msg { position: absolute; bottom: 40px; width: 100%; text-align: center; color: #71717a; font-weight: 600; letter-spacing: 1px; pointer-events: none; }
 
-        /* --- COACH PANEL (RIGHT) --- */
+        /* --- COACH PANEL --- */
         #coach-panel {
             flex: 1;
             background: var(--panel-color);
@@ -79,19 +97,12 @@
 
         .panel-header { font-size: 1.8rem; font-weight: 800; color: var(--accent-color); margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .section-title { font-size: 0.8rem; font-weight: 700; color: #a1a1aa; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 1px; }
-
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
         .stat-card { background: #27272a; padding: 15px; border-radius: 8px; border: 1px solid #3f3f46; text-align: center; }
         .stat-val { font-size: 2rem; font-weight: 800; color: #fff; }
         .stat-label { font-size: 0.7rem; color: #a1a1aa; text-transform: uppercase; }
 
-        .analysis-box {
-            background: rgba(139, 92, 246, 0.05);
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            border-left: 4px solid var(--accent-color);
-            padding: 20px; border-radius: 6px;
-        }
+        .analysis-box { background: rgba(139, 92, 246, 0.05); border: 1px solid rgba(139, 92, 246, 0.2); border-left: 4px solid var(--accent-color); padding: 20px; border-radius: 6px; }
         .focus-badge { display: inline-block; background: var(--accent-color); color: #fff; font-weight: 700; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; margin-bottom: 10px; }
         .advice-text { font-size: 0.9rem; line-height: 1.6; color: #e4e4e7; }
         .drill-box { background: #202024; padding: 15px; border-radius: 6px; margin-top: 15px; border: 1px dashed #555; }
@@ -100,19 +111,18 @@
         .chart-box { height: 80px; display: flex; align-items: flex-end; gap: 4px; padding-bottom: 5px; border-bottom: 1px solid #333; }
         .bar { flex: 1; background: #3f3f46; border-radius: 2px 2px 0 0; min-height: 4px; transition: height 0.3s; }
 
-        /* BUTTONS */
         .btn-group { display: flex; gap: 10px; margin-top: auto; }
         .btn { padding: 12px; background: #27272a; border: 1px solid #3f3f46; color: #fff; font-weight: 700; cursor: pointer; border-radius: 6px; flex: 1; }
         .btn:hover { border-color: var(--accent-color); color: var(--accent-color); }
-        
-        /* Audio Button State */
         .btn-audio.active { background: #2e1065; border-color: var(--accent-color); color: #c4b5fd; box-shadow: 0 0 10px rgba(139, 92, 246, 0.3); }
 
     </style>
 </head>
 <body>
 
-    <div id="game-wrapper" onmousedown="handleClick()">
+    <a href="index.html" class="home-btn">← DASHBOARD</a>
+
+    <div id="game-wrapper" onmousedown="handleClick(event)">
         <div id="game-container">
             <div id="feedback-msg">PERFECT</div>
             <div id="start-msg">CLICK TO START SESSION</div>
@@ -120,7 +130,6 @@
             <div id="enemy" class="hostile"><div class="head"></div><div class="body"><div class="gun"></div></div></div>
             <div class="wall"></div>
         </div>
-        <a href="index.html" style="margin-top: 20px; color: #52525b; text-decoration: none; font-size: 0.9rem;">← RETURN TO HUB</a>
     </div>
 
     <div id="coach-panel">
@@ -158,78 +167,77 @@
     </div>
 
     <script>
-        // --- CONFIG ---
+        // --- ELEMENTS ---
         const enemyEl = document.getElementById('enemy');
         const feedbackMsg = document.getElementById('feedback-msg');
         const startMsg = document.getElementById('start-msg');
-        
-        // Coach Elements
         const avgDisp = document.getElementById('avg-disp');
         const scoreDisp = document.getElementById('score-disp');
         const chartBox = document.getElementById('history-chart');
         const analysisContent = document.getElementById('analysis-content');
         const noiseBtn = document.getElementById('noise-btn');
 
-        // State
+        // --- STATE ---
         let state = "IDLE"; 
         let swingStart = 0;
         let swingTimer = null;
         let isFriendly = false;
-        
-        // Data Store
         let history = []; 
         let errors = 0;   
 
-        // --- AUDIO ENGINE (BROWN NOISE) ---
+        // --- AUDIO ENGINE ---
         let audioCtx = null;
         let noiseSource = null;
         let gainNode = null;
         let isNoisePlaying = false;
 
         function toggleBrownNoise() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            
-            if (isNoisePlaying) {
-                // STOP
-                if (noiseSource) noiseSource.stop();
-                noiseBtn.classList.remove('active');
-                isNoisePlaying = false;
-            } else {
-                // PLAY
-                if (audioCtx.state === 'suspended') audioCtx.resume();
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 
-                const bufferSize = audioCtx.sampleRate * 2; // 2 seconds buffer
-                const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-                const data = buffer.getChannelData(0);
-                
-                let lastOut = 0;
-                for (let i = 0; i < bufferSize; i++) {
-                    const white = Math.random() * 2 - 1;
-                    lastOut = (lastOut + (0.02 * white)) / 1.02; // Brown noise algo
-                    lastOut *= 3.5; 
-                    data[i] = lastOut;
-                }
+                if (isNoisePlaying) {
+                    if (noiseSource) noiseSource.stop();
+                    noiseBtn.classList.remove('active');
+                    isNoisePlaying = false;
+                } else {
+                    if (audioCtx.state === 'suspended') audioCtx.resume();
+                    
+                    const bufferSize = audioCtx.sampleRate * 2; 
+                    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    
+                    let lastOut = 0;
+                    for (let i = 0; i < bufferSize; i++) {
+                        const white = Math.random() * 2 - 1;
+                        lastOut = (lastOut + (0.02 * white)) / 1.02; 
+                        lastOut *= 3.5; 
+                        data[i] = lastOut;
+                    }
 
-                noiseSource = audioCtx.createBufferSource();
-                noiseSource.buffer = buffer;
-                noiseSource.loop = true;
-                
-                gainNode = audioCtx.createGain();
-                gainNode.gain.value = 0.15; 
-                
-                noiseSource.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-                noiseSource.start();
-                
-                noiseBtn.classList.add('active');
-                isNoisePlaying = true;
+                    noiseSource = audioCtx.createBufferSource();
+                    noiseSource.buffer = buffer;
+                    noiseSource.loop = true;
+                    
+                    gainNode = audioCtx.createGain();
+                    gainNode.gain.value = 0.15; 
+                    
+                    noiseSource.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    noiseSource.start();
+                    
+                    noiseBtn.classList.add('active');
+                    isNoisePlaying = true;
+                }
+            } catch (e) {
+                console.error("Audio Error:", e);
+                alert("Audio start failed. Please click the page first.");
             }
         }
 
-
         // --- GAME ENGINE ---
-        function handleClick() {
-            if (event.target.closest('#coach-panel')) return;
+        function handleClick(e) {
+            // SAFETY: Do not shoot if clicking the Panel OR the Home Button
+            if (e && (e.target.closest('#coach-panel') || e.target.closest('.home-btn'))) return;
 
             if (state === "IDLE" || state === "ENDED") return startRound();
             if (state === "HOLDING") return endRound("EARLY");
@@ -358,9 +366,7 @@
 
             analysisContent.innerHTML = `
                 <div class="focus-badge">${focus}</div>
-                <div class="advice-text">
-                    ${tip}
-                </div>
+                <div class="advice-text">${tip}</div>
                 <div class="drill-box">
                     <div class="drill-title">RECOMMENDED TRAINING:</div>
                     <div class="advice-text" style="color:#a1a1aa;">${drill}</div>
