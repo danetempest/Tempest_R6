@@ -2,19 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>R6 Recoil Lab</title>
     <style>
         :root {
             --bg: #09090b;
-            --accent: #ef4444; /* Aggressive Red for Recoil */
+            --accent: #ef4444; 
             --text: #f4f4f5;
+            --stage-1: #22c55e; /* Green */
+            --stage-2: #eab308; /* Yellow */
+            --stage-3: #ef4444; /* Red */
+            --stage-4: #a855f7; /* Purple (Insane) */
         }
         body {
             margin: 0;
             background: var(--bg);
             color: var(--text);
-            font-family: 'Segoe UI', system-ui, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             overflow: hidden;
             display: flex;
             flex-direction: column;
@@ -40,7 +43,7 @@
             box-shadow: 0 0 50px rgba(239, 68, 68, 0.2);
             border: 2px solid #333;
             border-radius: 12px;
-            cursor: none; /* Hide cursor during gameplay */
+            cursor: none; 
             background: radial-gradient(circle at center, #18181b 0%, #000 100%);
         }
 
@@ -48,27 +51,29 @@
         #hud {
             position: absolute;
             top: 20px; width: 100%;
-            text-align: center;
-            pointer-events: none;
             display: flex;
             justify-content: center;
             gap: 20px;
+            pointer-events: none;
         }
         .stat-box {
             background: rgba(0,0,0,0.8);
             padding: 10px 20px;
             border-radius: 8px;
             border: 1px solid #333;
-            min-width: 100px;
+            min-width: 140px;
+            text-align: center;
         }
-        .label { font-size: 0.8rem; color: #a1a1aa; text-transform: uppercase; margin-bottom: 5px; }
-        .value { font-size: 1.5rem; font-weight: 800; color: var(--accent); }
+        .label { font-size: 0.7rem; color: #a1a1aa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .value { font-size: 1.8rem; font-weight: 800; color: #fff; font-variant-numeric: tabular-nums; }
+        
+        #score-disp { color: var(--accent); }
 
-        /* START SCREEN */
-        #start-screen {
+        /* START / COUNTDOWN SCREEN */
+        #overlay-screen {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(9, 9, 11, 0.9);
+            background: rgba(9, 9, 11, 0.95);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -76,16 +81,32 @@
             z-index: 10;
             border-radius: 12px;
         }
+        
+        /* Typography */
         h1 { font-size: 3rem; margin: 0; text-transform: uppercase; letter-spacing: 2px; color: var(--accent); }
+        .big-count { font-size: 8rem; font-weight: 900; color: #fff; animation: popIn 0.5s ease-out; }
         p { color: #a1a1aa; max-width: 400px; text-align: center; line-height: 1.6; margin-bottom: 30px; }
+        
         .btn {
             background: var(--accent); color: #fff; border: none;
             padding: 15px 40px; font-size: 1.2rem; font-weight: 800;
             cursor: pointer; border-radius: 6px; 
-            transition: 0.2s;
-            border: 1px solid #b91c1c;
+            transition: 0.2s; border: 1px solid #b91c1c;
         }
         .btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent); }
+
+        /* RECOIL BAR */
+        #recoil-bar-container {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 300px; height: 8px; background: #333; border-radius: 4px;
+            overflow: hidden;
+        }
+        #recoil-fill {
+            height: 100%; width: 0%; background: var(--stage-1);
+            transition: width 0.1s linear, background 0.3s;
+        }
+
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
 
     </style>
 </head>
@@ -98,28 +119,33 @@
         
         <div id="hud">
             <div class="stat-box">
-                <div class="label">Time</div>
-                <div class="value" id="score-disp">0.0s</div>
+                <div class="label">Time Alive</div>
+                <div class="value" id="score-disp">0.00s</div>
             </div>
             <div class="stat-box">
-                <div class="label">Recoil Strength</div>
-                <div class="value" id="strength-disp">100%</div>
+                <div class="label">Current Stage</div>
+                <div class="value" id="stage-disp" style="color:var(--stage-1)">STAGE 1</div>
             </div>
         </div>
 
-        <div id="start-screen">
+        <div id="recoil-bar-container">
+            <div id="recoil-fill"></div>
+        </div>
+
+        <div id="overlay-screen">
             <h1>Recoil Lab</h1>
-            <p><strong>INSTRUCTIONS:</strong><br>The red dot will pull UP automatically.<br>Pull your mouse DOWN to keep it in the circle.<br>It gets harder every second.</p>
-            <button class="btn" onclick="startGame()">START SPRAY</button>
+            <p><strong>INSTRUCTIONS:</strong><br>The red dot pulls UP.<br>Pull mouse DOWN to keep it in the circle.<br><strong>Difficulty jumps every 5 seconds.</strong></p>
+            <button class="btn" onclick="triggerCountdown()">START SEQUENCE</button>
         </div>
     </div>
 
     <script>
         const canvas = document.getElementById('recoilCanvas');
         const ctx = canvas.getContext('2d');
-        const startScreen = document.getElementById('start-screen');
+        const overlayScreen = document.getElementById('overlay-screen');
         const scoreDisp = document.getElementById('score-disp');
-        const strengthDisp = document.getElementById('strength-disp');
+        const stageDisp = document.getElementById('stage-disp');
+        const recoilFill = document.getElementById('recoil-fill');
 
         // Game State
         let isRunning = false;
@@ -127,49 +153,60 @@
         let animationFrame;
         
         // Physics
-        let ballX = 400; // Center Width
-        let ballY = 300; // Center Height
-        let recoilForce = 0.5; // Upward force
-        let difficultyMultiplier = 0.005; // How fast recoil increases
-
+        let ballX = 400; 
+        let ballY = 300; 
+        let recoilForce = 0; 
+        
         // Config
-        const ZONE_RADIUS = 60; // Safe circle size
+        const ZONE_RADIUS = 60; 
         const BALL_RADIUS = 8; 
 
         // Cross-Browser Pointer Lock
         canvas.requestPointerLock = canvas.requestPointerLock || canvas.mozRequestPointerLock;
 
-        function startGame() {
-            startScreen.style.display = 'none';
+        function triggerCountdown() {
+            // 1. Lock Mouse Immediately
             canvas.requestPointerLock();
+            
+            // 2. Start Countdown UI
+            let count = 3;
+            overlayScreen.innerHTML = `<div class="big-count">${count}</div>`;
+            
+            const countInterval = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    overlayScreen.innerHTML = `<div class="big-count">${count}</div>`;
+                } else {
+                    clearInterval(countInterval);
+                    startGame();
+                }
+            }, 1000);
+        }
+
+        function startGame() {
+            overlayScreen.style.display = 'none';
             
             // Reset Values
             ballX = 400;
             ballY = 300;
-            recoilForce = 1.2; // Start with decent kick (Like MP7)
             startTime = Date.now();
             isRunning = true;
 
             // Start Loops
             document.addEventListener("mousemove", handleMouse, false);
-            // Handle pointer lock errors/exit
             document.addEventListener("pointerlockchange", lockChangeAlert, false);
             
             gameLoop();
         }
 
         function lockChangeAlert() {
-            if (document.pointerLockElement === canvas) {
-                // Locked
-            } else {
-                // User pressed ESC or Alt-Tabbed
-                if(isRunning) gameOver(); 
+            if (document.pointerLockElement !== canvas && isRunning) {
+                gameOver(); // Failed because user Tabbed out/Escaped
             }
         }
 
         function handleMouse(e) {
             if (!isRunning) return;
-            // Counter-act the recoil with mouse movement
             ballY += e.movementY; 
             ballX += e.movementX;
         }
@@ -177,49 +214,69 @@
         function gameLoop() {
             if (!isRunning) return;
 
-            // 1. UPDATE PHYSICS
-            // Increase recoil force slightly over time (Fatigue)
-            recoilForce += difficultyMultiplier; 
+            // --- 1. CALCULATE TIME & STAGE ---
+            let elapsed = (Date.now() - startTime) / 1000;
             
-            // Add horizontal jitter (Random shake left/right)
+            // Stage Logic (Every 5 seconds)
+            let stageName = "";
+            let stageColor = "";
+            
+            if (elapsed < 5) {
+                recoilForce = 1.0; // Stage 1: Easy (MP5)
+                stageName = "STAGE 1";
+                stageColor = "var(--stage-1)";
+            } else if (elapsed < 10) {
+                recoilForce = 1.8; // Stage 2: Medium (Jager)
+                stageName = "STAGE 2";
+                stageColor = "var(--stage-2)";
+            } else if (elapsed < 15) {
+                recoilForce = 2.8; // Stage 3: Hard (Twitch/Buck)
+                stageName = "STAGE 3";
+                stageColor = "var(--stage-3)";
+            } else {
+                recoilForce = 3.8; // Stage 4: Insane (SMG-11)
+                stageName = "STAGE 4";
+                stageColor = "var(--stage-4)";
+            }
+
+            // Update UI
+            scoreDisp.innerText = elapsed.toFixed(2) + "s";
+            stageDisp.innerText = stageName;
+            stageDisp.style.color = stageColor;
+            recoilFill.style.background = stageColor;
+            
+            // Bar fills up every 5 seconds (0-100%)
+            let stageProgress = (elapsed % 5) / 5 * 100;
+            if (elapsed > 15) stageProgress = 100; // Max out at stage 4
+            recoilFill.style.width = stageProgress + "%";
+
+            // --- 2. PHYSICS ---
             let jitter = (Math.random() - 0.5) * (recoilForce * 1.5);
-            
-            // Apply Forces (Ball moves UP naturally)
             ballY -= recoilForce; 
             ballX += jitter;
 
-            // 2. CHECK BOUNDARIES (Did you lose control?)
-            // Distance from center (400, 300)
+            // --- 3. CHECK DEATH ---
             let dist = Math.hypot(ballX - 400, ballY - 300);
-
             if (dist > ZONE_RADIUS) {
                 gameOver();
                 return;
             }
 
-            // 3. UPDATE UI
-            let timeAlive = ((Date.now() - startTime) / 1000).toFixed(2);
-            scoreDisp.innerText = timeAlive + "s";
-            strengthDisp.innerText = Math.round(recoilForce * 100) + "%";
-
-            // 4. DRAW
             draw();
-
             animationFrame = requestAnimationFrame(gameLoop);
         }
 
         function draw() {
-            // Clear Screen
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear previous frame
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Safe Zone (Center)
+            // Safe Zone
             ctx.beginPath();
             ctx.arc(400, 300, ZONE_RADIUS, 0, Math.PI * 2);
             ctx.strokeStyle = "#444";
             ctx.lineWidth = 4;
             ctx.stroke();
             
-            // Draw Crosshair Lines
+            // Crosshair
             ctx.strokeStyle = "rgba(255,255,255,0.1)";
             ctx.lineWidth = 1;
             ctx.beginPath();
@@ -227,13 +284,13 @@
             ctx.moveTo(400, 0); ctx.lineTo(400, 600);
             ctx.stroke();
 
-            // Draw Player Ball (The Aim Point)
+            // The Ball
             ctx.beginPath();
             ctx.arc(ballX, ballY, BALL_RADIUS, 0, Math.PI * 2);
-            ctx.fillStyle = "#ef4444"; // Red Dot
+            ctx.fillStyle = "#ef4444"; 
             ctx.fill();
             
-            // Draw "Tension" Line (Visualizes the pull)
+            // Tension Line
             ctx.beginPath();
             ctx.moveTo(400, 300);
             ctx.lineTo(ballX, ballY);
@@ -248,11 +305,18 @@
             document.removeEventListener("mousemove", handleMouse, false);
             cancelAnimationFrame(animationFrame);
 
-            startScreen.style.display = 'flex';
-            startScreen.innerHTML = `
-                <h1 style="color:#ef4444">CONTROL LOST</h1>
-                <p>You controlled the recoil for <br><span style="font-size:2rem; color:white;">${scoreDisp.innerText}</span></p>
-                <button class="btn" onclick="startGame()">RETRY</button>
+            // Get Final Score
+            let finalTime = scoreDisp.innerText;
+            let finalStage = stageDisp.innerText;
+            let finalColor = stageDisp.style.color;
+
+            // Rebuild Overlay
+            overlayScreen.style.display = 'flex';
+            overlayScreen.innerHTML = `
+                <h1 style="color:#ef4444">LOST CONTROL</h1>
+                <p>You reached <span style="color:${finalColor}; font-weight:bold;">${finalStage}</span></p>
+                <div style="font-size:3rem; font-weight:800; color:white; margin-bottom:20px;">${finalTime}</div>
+                <button class="btn" onclick="triggerCountdown()">RETRY</button>
             `;
         }
     </script>
