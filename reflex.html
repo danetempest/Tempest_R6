@@ -55,6 +55,7 @@
             box-shadow: 0 0 30px var(--accent);
             transform: translate(-50%, -50%);
             backface-visibility: hidden;
+            transition: transform 0.1s;
         }
         .target.hit {
             background: var(--hit);
@@ -70,6 +71,32 @@
             z-index: 100; pointer-events: none;
             box-shadow: 0 0 0 2px rgba(0,0,0,0.5);
         }
+
+        /* --- WEAPON MODEL --- */
+        #weapon-container {
+            position: absolute; bottom: 0; right: 20%;
+            width: 300px; height: 300px;
+            pointer-events: none; z-index: 90;
+            transform-origin: bottom right;
+            transition: transform 0.05s ease-out;
+        }
+        .gun-body {
+            position: absolute; bottom: -50px; right: 0;
+            width: 60px; height: 250px;
+            background: #111;
+            border-left: 2px solid #333;
+            border-right: 2px solid #333;
+            transform: rotate(-5deg);
+        }
+        .gun-slide {
+            position: absolute; bottom: 180px; right: -10px;
+            width: 80px; height: 200px;
+            background: #1a1a1a;
+            border: 1px solid #444;
+            transform: rotate(-5deg);
+        }
+        .gun-kick { animation: kick 0.1s ease-out; }
+        @keyframes kick { 0% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(20px) rotate(5deg); } 100% { transform: translateY(0) rotate(0deg); } }
 
         /* --- UI --- */
         .home-btn {
@@ -90,18 +117,23 @@
         .val { font-size: 2rem; font-weight: 900; color: #fff; }
         #score-disp { color: var(--accent); }
 
-        /* SETTINGS */
+        /* SETTINGS PANEL (Hidden by default during play) */
         #settings-panel {
-            position: absolute; bottom: 20px; right: 20px;
-            background: rgba(0,0,0,0.8); padding: 15px;
-            border-radius: 8px; border: 1px solid #333;
-            z-index: 200; width: 250px;
+            position: absolute; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%);
+            background: rgba(9, 9, 11, 0.95); padding: 30px;
+            border-radius: 12px; border: 1px solid #333;
+            z-index: 400; width: 300px;
+            display: none; /* Controlled by Tab/Pause */
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
         }
-        .setting-row { margin-bottom: 10px; }
-        .setting-label { font-size: 0.75rem; color: #aaa; display: flex; justify-content: space-between; }
+        .panel-title { text-align: center; font-size: 1.5rem; color: #fff; font-weight: 800; margin-bottom: 20px; }
+        .setting-row { margin-bottom: 15px; }
+        .setting-label { font-size: 0.8rem; color: #aaa; display: flex; justify-content: space-between; margin-bottom: 5px; }
         input[type=range] { width: 100%; accent-color: var(--accent); cursor: pointer; }
-        .checkbox-row { display: flex; align-items: center; gap: 10px; font-size: 0.75rem; color: #aaa; }
-
+        .checkbox-row { display: flex; align-items: center; gap: 10px; font-size: 0.8rem; color: #fff; margin-bottom: 5px; }
+        
+        /* OVERLAYS */
         .overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(9, 9, 11, 0.95);
@@ -113,7 +145,7 @@
         .btn {
             background: var(--accent); color: #000; border: none;
             padding: 15px 40px; font-size: 1.2rem; font-weight: 800;
-            border-radius: 6px; cursor: pointer; transition: 0.2s;
+            border-radius: 6px; cursor: pointer; transition: 0.2s; width: 100%;
         }
         .btn:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent); }
 
@@ -131,12 +163,22 @@
             <div class="val" id="score-disp">0</div>
         </div>
         <div class="stat-box">
+            <div class="label">Accuracy</div>
+            <div class="val" id="acc-disp">100%</div>
+        </div>
+        <div class="stat-box">
             <div class="label">Time</div>
             <div class="val" id="time-disp">45</div>
         </div>
     </div>
 
+    <div id="weapon-container">
+        <div class="gun-slide"></div>
+        <div class="gun-body"></div>
+    </div>
+
     <div id="settings-panel">
+        <div class="panel-title">PAUSED</div>
         <div class="setting-row">
             <div class="setting-label"><span>Horiz Sens</span><span id="h-val">1.0</span></div>
             <input type="range" min="0.1" max="5.0" step="0.1" value="1.0" oninput="updateSens('h', this.value)">
@@ -146,10 +188,16 @@
             <input type="range" min="0.1" max="5.0" step="0.1" value="1.0" oninput="updateSens('v', this.value)">
         </div>
         <div class="checkbox-row">
-            <input type="checkbox" id="invert-y" onchange="toggleInvert(this.checked)">
-            <label for="invert-y">Invert Y-Axis</label>
+            <input type="checkbox" id="invert-y" checked onchange="toggleInvert(this.checked)">
+            <label for="invert-y">Invert Y-Axis (FPS Standard)</label>
         </div>
-        <div style="font-size:0.7rem; color:#666; text-align:center; margin-top:10px;">Press ESC to unlock cursor</div>
+        <div class="checkbox-row">
+            <input type="checkbox" id="moving-targets" onchange="toggleMotion(this.checked)">
+            <label for="moving-targets">Strafing Targets</label>
+        </div>
+        <div style="margin-top:20px;">
+            <button class="btn" onclick="resumeGame()">RESUME (TAB)</button>
+        </div>
     </div>
 
     <div id="viewport">
@@ -160,55 +208,83 @@
 
     <div id="start-screen" class="overlay">
         <h1 style="color:var(--accent)">3D GRIDSHOT</h1>
-        <p><strong>TRUE FPS MODE</strong><br>Use your mouse to LOOK around.<br>Destroy blue targets. Speed is key.</p>
-        <button class="btn" onclick="initGame()">ENTER ARENA</button>
+        <p><strong>TRUE FPS MODE</strong><br>Click to enter Fullscreen.<br>Press <strong>TAB</strong> to change sensitivity.</p>
+        <button class="btn" style="width:auto;" onclick="initGame()">ENTER ARENA</button>
     </div>
 
     <div id="end-screen" class="overlay" style="display:none;">
         <h1>SESSION COMPLETE</h1>
         <div style="font-size:4rem; font-weight:900; color:var(--accent); margin-bottom:10px;" id="final-score">0</div>
         <p>Targets Destroyed</p>
-        <button class="btn" onclick="initGame()">RESTART</button>
+        <button class="btn" style="width:auto;" onclick="initGame()">RESTART</button>
     </div>
 
     <script>
         const world = document.getElementById('world');
         const wall = document.getElementById('wall');
         const viewport = document.getElementById('viewport');
+        const weapon = document.getElementById('weapon-container');
+        const settingsPanel = document.getElementById('settings-panel');
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         let isRunning = false;
+        let isPaused = false;
         let score = 0;
+        let clicks = 0;
+        let hits = 0;
         let timeLeft = 45;
         let timerInterval;
+        let motionInterval;
 
         let camYaw = 0;   
         let camPitch = 0; 
         
         let sensX = 1.0;
         let sensY = 1.0;
-        let invertY = false; // Default: Standard FPS (Up is Up)
+        // Default Invert Y is TRUE now
+        let invertY = true; 
+        let strafing = false;
 
         viewport.requestPointerLock = viewport.requestPointerLock || viewport.mozRequestPointerLock;
 
+        // --- INPUT HANDLING ---
         function updateSens(axis, val) {
             if (axis === 'h') { sensX = parseFloat(val); document.getElementById('h-val').innerText = val; }
             if (axis === 'v') { sensY = parseFloat(val); document.getElementById('v-val').innerText = val; }
         }
 
-        function toggleInvert(checked) {
-            invertY = checked;
-        }
+        function toggleInvert(checked) { invertY = checked; }
+        function toggleMotion(checked) { strafing = checked; }
 
+        // --- TAB KEY LISTENER ---
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Tab') {
+                e.preventDefault(); // Stop tab switching
+                if (isRunning) {
+                    if (isPaused) resumeGame();
+                    else pauseGame();
+                }
+            }
+        });
+
+        // --- GAME LOOP ---
         function initGame() {
             document.getElementById('start-screen').style.display = 'none';
             document.getElementById('end-screen').style.display = 'none';
+            settingsPanel.style.display = 'none';
+            
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            }
             viewport.requestPointerLock();
             
-            score = 0; timeLeft = 45; camYaw = 0; camPitch = 0;
+            score = 0; clicks = 0; hits = 0; timeLeft = 45;
+            camYaw = 0; camPitch = 0;
+            isPaused = false;
             updateCamera();
             
             document.getElementById('score-disp').innerText = score;
+            document.getElementById('acc-disp').innerText = "100%";
             document.getElementById('time-disp').innerText = timeLeft;
             
             wall.innerHTML = '';
@@ -218,43 +294,94 @@
             document.addEventListener("mousemove", handleMouse, false);
             document.addEventListener("mousedown", handleShoot, false);
             
+            // Timer Loop
+            if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
-                if(!isRunning) return;
+                if(!isRunning || isPaused) return;
                 timeLeft--;
                 document.getElementById('time-disp').innerText = timeLeft;
                 if(timeLeft <= 0) endGame();
             }, 1000);
+
+            // Motion Loop
+            if (motionInterval) clearInterval(motionInterval);
+            motionInterval = setInterval(() => {
+                if(isRunning && !isPaused && strafing) updateTargets();
+            }, 50);
+        }
+
+        function pauseGame() {
+            isPaused = true;
+            document.exitPointerLock();
+            settingsPanel.style.display = 'block';
+        }
+
+        function resumeGame() {
+            isPaused = false;
+            settingsPanel.style.display = 'none';
+            viewport.requestPointerLock();
+        }
+
+        // --- POINTER LOCK MONITOR ---
+        // If user presses ESC, we treat it as a Pause
+        document.addEventListener('pointerlockchange', () => {
+            if (document.pointerLockElement !== viewport && isRunning && !isPaused) {
+                pauseGame();
+            }
+        }, false);
+
+        function updateTargets() {
+            const targets = document.querySelectorAll('.target');
+            targets.forEach(t => {
+                let x = parseFloat(t.style.left);
+                let y = parseFloat(t.style.top);
+                if (!t.dataset.vx) {
+                    t.dataset.vx = (Math.random() - 0.5) * 10;
+                    t.dataset.vy = (Math.random() - 0.5) * 10;
+                }
+                x += parseFloat(t.dataset.vx);
+                y += parseFloat(t.dataset.vy);
+                if(x < 300 || x > 1700) t.dataset.vx *= -1;
+                if(y < 600 || y > 1400) t.dataset.vy *= -1;
+                t.style.left = x + 'px';
+                t.style.top = y + 'px';
+            });
         }
 
         function handleMouse(e) {
-            if (!isRunning) return;
+            if (!isRunning || isPaused) return;
             
-            // X-Axis (Yaw)
             camYaw -= e.movementX * (sensX * 0.1); 
-
-            // Y-Axis (Pitch) - FIXED: Now moves correctly for FPS
             let moveY = e.movementY * (sensY * 0.1);
+            
+            // Standard FPS Style now default (invertY is true by default in vars)
+            // Logic: If invertY is ON, we ADD to pitch (Up is Up).
+            // Note: My previous logic was inverted naming. Let's fix for clarity:
+            // Standard Gaming (Up moves view up) -> Subtract Y
+            // Inverted Gaming (Up moves view down) -> Add Y
+            // Siege Default is Standard.
+            
             if(invertY) {
-                camPitch -= moveY; // Inverted Flight Style
+                camPitch -= moveY; // Standard FPS (Mouse Up = Look Up)
             } else {
-                camPitch += moveY; // Standard FPS Style
+                camPitch += moveY; // Flight Sim (Mouse Up = Look Down)
             }
 
-            // Clamp looking up/down
             camPitch = Math.max(-85, Math.min(85, camPitch));
-
             updateCamera();
+            
+            const swayX = Math.max(-15, Math.min(15, e.movementX * -0.5));
+            const swayY = Math.max(-15, Math.min(15, e.movementY * -0.5));
+            weapon.style.transform = `translate(${swayX}px, ${swayY}px)`;
         }
 
         function updateCamera() {
-            // CSS 3D Rotation
             world.style.transform = `rotateX(${camPitch}deg) rotateY(${camYaw}deg)`;
         }
 
         function spawnTarget() {
             const t = document.createElement('div');
             t.className = 'target';
-            // Restrict spawn area to keep it playable
             let x = (Math.random() * 1400) + 300; 
             let y = (Math.random() * 800) + 600;  
             t.style.left = x + 'px';
@@ -263,7 +390,12 @@
         }
 
         function handleShoot() {
-            if (!isRunning) return;
+            if (!isRunning || isPaused) return;
+            clicks++;
+            weapon.classList.remove('gun-kick');
+            void weapon.offsetWidth; 
+            weapon.classList.add('gun-kick');
+
             const centerX = window.innerWidth / 2;
             const centerY = window.innerHeight / 2;
             const hitEl = document.elementFromPoint(centerX, centerY);
@@ -273,17 +405,22 @@
                 hitEl.classList.add('hit');
                 setTimeout(() => hitEl.remove(), 100); 
                 score++;
+                hits++;
                 document.getElementById('score-disp').innerText = score;
                 spawnTarget(); 
             } else {
                 playSound(150, 'sawtooth'); 
             }
+            let acc = Math.round((hits / clicks) * 100);
+            document.getElementById('acc-disp').innerText = acc + "%";
         }
 
         function endGame() {
             isRunning = false;
             document.exitPointerLock();
+            if (document.exitFullscreen) document.exitFullscreen();
             clearInterval(timerInterval);
+            clearInterval(motionInterval);
             document.removeEventListener("mousemove", handleMouse);
             document.removeEventListener("mousedown", handleShoot);
             document.getElementById('end-screen').style.display = 'flex';
